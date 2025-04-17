@@ -30,6 +30,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -41,7 +43,7 @@ import kotlinx.coroutines.flow.onEach
 
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavController) {
     var email by remember {
         mutableStateOf("")
     }
@@ -91,7 +93,7 @@ fun LoginScreen() {
                 .logInWithEmail(email, password)
                 .onEach { response ->
                     if (response is AuthResponse.Success)  {
-                        //do smth
+                        navController.navigate("expenselist")
                     }
                 }.launchIn(coroutineScope)
 
@@ -154,7 +156,8 @@ interface AuthResponse {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
+    val navController = rememberNavController()
     ExpTrackPMTheme {
-    LoginScreen()
+    LoginScreen(navController = navController)
     }
 }

@@ -12,10 +12,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
 @Composable
-fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel()) {
+fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController: NavController) {
 
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -106,7 +108,8 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel()) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewAddExpenseScreen() {
-    AddExpenseScreen()
+    val navController = rememberNavController()
+    AddExpenseScreen(navController = navController)
 }
 
 

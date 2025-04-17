@@ -18,12 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.exptrackpm.domain.model.Expense
 
 
 @Composable
 fun ExpenseListScreen(
-    viewModel: ExpenseListViewModel = viewModel()
+    viewModel: ExpenseListViewModel = viewModel(),
+    navController: NavController
 ) {
     val expenses by viewModel.expenseList.collectAsStateWithLifecycle()
 

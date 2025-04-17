@@ -18,10 +18,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ExpTrackPMTheme {
-                //ExpenseListScreen()
-                //AddExpenseScreen()
-
-                LoginScreen()
+//                ExpenseListScreen()
+//                AddExpenseScreen()
+//                LoginScreen()
+                Navigation()
             }
         }
     }
