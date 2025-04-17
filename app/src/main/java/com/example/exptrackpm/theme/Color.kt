@@ -1,4 +1,4 @@
-package com.example.exptrackpm.ui.theme
+package com.example.exptrackpm.theme
 
 import androidx.compose.ui.graphics.Color
 
