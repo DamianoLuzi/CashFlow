@@ -5,6 +5,7 @@ import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.exptrackpm.theme.ExpTrackPMTheme
+import com.example.exptrackpm.ui.screens.addexpense.AddExpenseScreen
 import com.example.exptrackpm.ui.screens.expenselist.ExpenseListScreen
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +17,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ExpTrackPMTheme {
-                ExpenseListScreen()
+                //ExpenseListScreen()
+                AddExpenseScreen()
             }
         }
     }
