@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel()) {
 
-    // State variables for form inputs
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -25,10 +24,9 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel()) {
     var isSubmitting by remember { mutableStateOf(false) } // Flag to show loading state
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Form submission handler
     val handleSubmit = {
-        // Validate fields
         if (amount.isNotEmpty() && description.isNotEmpty() && category.isNotEmpty()) {
             val amountDouble = amount.toDoubleOrNull()
             if (amountDouble != null) {
@@ -37,14 +35,13 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel()) {
                     isSubmitting = true
                     viewModel.addExpense(amountDouble, description, category, receiptUrl)
                     isSubmitting = false
-//                    // Show success message, you could use Toast or Snackbar here
-                    //Toast.makeText(LocalContext.current, "Expense added successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Expense added successfully", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                //Toast.makeText(LocalContext.current, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
             }
         } else {
-            //Toast.makeText(LocalContext.current, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
         }
     }
 

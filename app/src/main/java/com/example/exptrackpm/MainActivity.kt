@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.addexpense.AddExpenseScreen
 import com.example.exptrackpm.ui.screens.expenselist.ExpenseListScreen
+import com.example.exptrackpm.ui.screens.login.LoginScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -18,7 +19,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             ExpTrackPMTheme {
                 //ExpenseListScreen()
-                AddExpenseScreen()
+                //AddExpenseScreen()
+
+                LoginScreen()
             }
         }
     }
