@@ -1,8 +1,14 @@
 package com.example.exptrackpm.ui.screens.addexpense
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -16,6 +22,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController: NavController) {
 
@@ -24,7 +31,8 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
     var category by remember { mutableStateOf("") }
     var receiptUrl by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) } // Flag to show loading state
-
+    val categories = listOf("Food", "Travel", "Entertainment", "Other")
+    var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -47,7 +55,18 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
         }
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Add Expense") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -55,8 +74,8 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Amount Field
-            TextField(
+
+            OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
                 label = { Text("Amount") },
@@ -64,31 +83,56 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Description Field
-            TextField(
+            OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Category Field
-            TextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Category") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = category,
+                    onValueChange = {},
+                    label = { Text("Category") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { expanded = !expanded }) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDropDown,
+                                contentDescription = "Dropdown Arrow"
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = true } // makes the whole field clickable
+                )
 
-            // Receipt URL (optional) Field
-            TextField(
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    categories.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                category = option
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
                 value = receiptUrl,
                 onValueChange = { receiptUrl = it },
                 label = { Text("Receipt URL (optional)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Submit Button
             Button(
                 //viewModel.addExpense(amount.toDouble(), description, category, receiptUrl)
                 onClick = {handleSubmit()},
@@ -104,6 +148,8 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
         }
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable
