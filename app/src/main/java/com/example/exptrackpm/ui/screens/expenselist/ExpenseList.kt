@@ -14,6 +14,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +33,15 @@ fun ExpenseListScreen(
 ) {
     val expenses by viewModel.expenseList.collectAsStateWithLifecycle()
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                navController.navigate("addexpense")
+            }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Expense")
+            }
+        }
+    ) { paddingValues ->
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             modifier = Modifier.padding(paddingValues),
@@ -100,46 +112,3 @@ fun ExpenseItem(expense: Expense) {
         }
     }
 }
-
-
-//@Composable
-//fun ExpenseListScreen(
-//    viewModel: ExpenseListViewModel = viewModel())  {
-//    val expenses by viewModel.expenseList.collectAsStateWithLifecycle()
-//
-//    Scaffold { paddingValues ->
-//
-//        LazyColumn(
-//            contentPadding = PaddingValues(20.dp),
-//            modifier = Modifier.padding(paddingValues),
-//            verticalArrangement = Arrangement.spacedBy(10.dp)
-//        ) {
-//            items(expenses) { expense ->
-//                Row(
-//                    modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-//                    horizontalArrangement = Arrangement.SpaceBetween
-//                ) {
-//                    Text(
-//                        text = expense.amount.toString(),
-//                        fontSize = 28.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                    Text(
-//                        text = expense.category,
-//                        fontSize = 28.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                    Text(
-//                        text = expense.date.toDate().toString(),
-//                        fontSize = 28.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                }
-//
-//            }
-//        }
-//
-//    }
-//
-//
-//}
