@@ -2,6 +2,7 @@ package com.example.exptrackpm.ui.screens.expenselist
 
 import androidx.lifecycle.ViewModel
 import com.example.exptrackpm.domain.model.Expense
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.ktx.Firebase
@@ -18,7 +19,14 @@ class ExpenseListViewModel: ViewModel() {
     fun getExpenseList() {
         var db = Firebase.firestore
 
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser == null) {
+            // redirect to login?
+            return
+        }
+
         db.collection("expense")
+            .whereEqualTo("userId", currentUser.uid) //fetch user's specific expenses
             .addSnapshotListener { value, error ->
                 if(error != null) {
                    return@addSnapshotListener

@@ -11,16 +11,10 @@ import com.example.exptrackpm.ui.screens.login.LoginScreen
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var btnInsertData: Button
-    private lateinit var btnFetchData: Button
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ExpTrackPMTheme {
-//                ExpenseListScreen()
-//                AddExpenseScreen()
-//                LoginScreen()
                 Navigation()
             }
         }
