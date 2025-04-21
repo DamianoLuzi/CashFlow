@@ -1,5 +1,6 @@
 package com.example.exptrackpm
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -9,6 +10,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.ui.screens.addexpense.AddExpenseScreen
+import com.example.exptrackpm.ui.screens.dashboard.Dashboard
+import com.example.exptrackpm.ui.screens.dashboard.RefinedDashboard
 import com.example.exptrackpm.ui.screens.expenselist.ExpenseListScreen
 import com.example.exptrackpm.ui.screens.login.LoginScreen
 
@@ -17,8 +20,8 @@ import com.example.exptrackpm.ui.screens.login.LoginScreen
 fun Navigation() {
     val navController = rememberNavController()
     val isUserLoggedIn by SessionManager.isUserLoggedIn.collectAsState()
-
-    val startDestination = if (isUserLoggedIn) "expenselist" else "login"
+    Log.d("auth", "user is logged in: ${isUserLoggedIn}")
+    val startDestination = if (isUserLoggedIn) "dashboard" else "login"
     NavHost(navController= navController, startDestination = startDestination, builder = {
         composable("login") {
             LoginScreen(navController)
@@ -28,6 +31,9 @@ fun Navigation() {
         }
         composable("expenselist") {
             ExpenseListScreen(navController = navController)
+        }
+        composable("dashboard") {
+            RefinedDashboard(navController = navController)
         }
 
     })
