@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -87,16 +88,17 @@ fun groupExpensesByDay(expenses: List<Expense>): Map<String, Float> {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RefinedDashboard( viewModel: ExpenseListViewModel = viewModel(), navController: NavController) {
+fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: NavController) {
     val expenses by viewModel.expenseList.collectAsStateWithLifecycle()
 
     val now = Calendar.getInstance().time
     var selectedRange by remember { mutableStateOf("7d") }
-    val options = listOf("7d", "30d", "90d")
+    val options = listOf("7d", "30d", "90d","1Y")
     val daysBack = when (selectedRange) {
         "7d" -> 7
         "30d" -> 30
         "90d" -> 90
+        "1Y" -> 365
         else -> 7
     }
     val filteredExpenses = expenses.filter {
@@ -113,7 +115,7 @@ fun RefinedDashboard( viewModel: ExpenseListViewModel = viewModel(), navControll
 
     Log.d("expenses", expenses.toString())
     val totalSpent = expenses.sumOf { it.amount }
-    val groupedExpenses = groupExpensesByDay(expenses).toSortedMap() // keeps dates sorted
+    val groupedExpenses = groupExpensesByDay(filteredExpenses).toSortedMap() // keeps dates sorted
     val labels = groupedExpenses.keys.toList()
     val displayLabels = labels.map {
         labelSDF.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
@@ -132,10 +134,11 @@ fun RefinedDashboard( viewModel: ExpenseListViewModel = viewModel(), navControll
         sdf.format(today.time)
     }.reversed()
 
-
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val dynamicStepSize = screenWidth / (pointsData.size + 1)
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(50.dp)
+        .axisStepSize(dynamicStepSize)
         .backgroundColor(Color.Transparent)
         .steps(pointsData.size - 1)
         .labelData { i -> displayLabels.getOrElse(i) { "" } }
@@ -155,25 +158,6 @@ fun RefinedDashboard( viewModel: ExpenseListViewModel = viewModel(), navControll
         }
         .build()
 
-
-    val lineChartData = LineChartData(
-        linePlotData = LinePlotData(
-            lines = listOf(
-                Line(
-                    dataPoints = pointsData,
-                    LineStyle(),
-                    IntersectionPoint(),
-                    SelectionHighlightPoint(),
-                    ShadowUnderLine(),
-                    SelectionHighlightPopUp()
-                )
-            ),
-        ),
-        xAxisData = xAxisData,
-        yAxisData = yAxisData,
-        gridLines = GridLines(),
-        backgroundColor = Color.White
-    )
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -191,9 +175,6 @@ fun RefinedDashboard( viewModel: ExpenseListViewModel = viewModel(), navControll
             Text("$${"%.2f".format(totalSpent)}", fontSize = 32.sp)
 
             Spacer(Modifier.height(24.dp))
-
-            //CategoryPieChart(expenses = expenses)
-
             Spacer(Modifier.height(24.dp))
 
             // Future: Add a bar chart here for monthly trends
@@ -256,6 +237,6 @@ fun RefinedDashboard( viewModel: ExpenseListViewModel = viewModel(), navControll
 fun RefinedDashboardPreview() {
     val navController = rememberNavController()
     ExpTrackPMTheme {
-        RefinedDashboard(navController = navController)
+        Dashboard(navController = navController)
     }
 }

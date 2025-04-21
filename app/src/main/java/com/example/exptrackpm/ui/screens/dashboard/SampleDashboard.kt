@@ -43,7 +43,7 @@ import com.example.exptrackpm.ui.screens.expenselist.ExpenseListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: NavController) {
+fun SampleDashboard( viewModel: ExpenseListViewModel = viewModel(), navController: NavController) {
     val expenses by viewModel.expenseList.collectAsStateWithLifecycle()
     Log.d("expenses", expenses.toString())
     val totalSpent = expenses.sumOf { it.amount }
