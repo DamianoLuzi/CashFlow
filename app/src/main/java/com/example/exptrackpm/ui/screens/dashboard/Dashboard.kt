@@ -1,7 +1,6 @@
 package com.example.exptrackpm.ui.screens.dashboard
 
 import android.util.Log
-import co.yml.charts.common.model.Point
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import co.yml.charts.axis.AxisData
+import co.yml.charts.common.model.Point
 import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.GridLines
 import co.yml.charts.ui.linechart.model.IntersectionPoint
@@ -45,6 +45,7 @@ import co.yml.charts.ui.linechart.model.LineStyle
 import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
 import co.yml.charts.ui.linechart.model.ShadowUnderLine
+import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.domain.model.Expense
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.expenselist.ExpenseListViewModel
@@ -223,6 +224,13 @@ fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: Nav
                         Text(label)
                     }
                 }
+            }
+
+            Button(
+                onClick = { SessionManager.logout() },
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Text("Log Out")
             }
 
         }
