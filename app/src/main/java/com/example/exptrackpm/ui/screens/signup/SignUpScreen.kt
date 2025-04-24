@@ -108,8 +108,10 @@ fun SignUpScreen(navController: NavController) {
                     when (result) {
                         is AuthResponse.Success -> {
                             SessionManager.startAutoLogoutTimer(30 * 60 * 1000) // 30 min
-                            navController.navigate("dashboard") {
-                                popUpTo("signup") { inclusive = true }
+                            navController.navigate("dashboard")
+                            {
+                                popUpTo(0) // removes everything from back stack
+                                launchSingleTop = true
                             }
                         }
                         is AuthResponse.Error -> {

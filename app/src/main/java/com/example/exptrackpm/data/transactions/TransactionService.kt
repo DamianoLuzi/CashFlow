@@ -24,7 +24,6 @@ object TransactionService {
         )
 
         db.collection("expense")
-            //.add(transaction.copy(userId = userId))
             .add(txn)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }

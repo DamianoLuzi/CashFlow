@@ -27,18 +27,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.theme.ExpTrackPMTheme
-import com.example.exptrackpm.ui.screens.login.LoginScreen
 import java.text.SimpleDateFormat
 import java.util.Locale
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.exptrackpm.ui.screens.expenselist.ExpenseItem
 
 
 @Composable
 fun TransactionListScreen(
-    viewModel: TransactionViewModel = viewModel()
+    viewModel: TransactionViewModel = viewModel(),
+    navController: NavController
 ) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsState()
@@ -122,7 +122,7 @@ fun TransactionItem(transaction: Transaction) {
 fun TransactionScreenPreview() {
     val navController = rememberNavController()
     ExpTrackPMTheme {
-        TransactionListScreen()
+        TransactionListScreen(navController = navController)
     }
 }
 

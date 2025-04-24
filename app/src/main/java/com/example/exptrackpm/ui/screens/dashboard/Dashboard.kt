@@ -1,6 +1,7 @@
 package com.example.exptrackpm.ui.screens.dashboard
 
-import android.util.Log
+import Transaction
+import TransactionType
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,55 +47,21 @@ import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
 import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.exptrackpm.auth.SessionManager
-import com.example.exptrackpm.domain.model.Expense
 import com.example.exptrackpm.theme.ExpTrackPMTheme
-import com.example.exptrackpm.ui.screens.expenselist.ExpenseListViewModel
+import com.example.exptrackpm.ui.screens.transactions.TransactionViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
-
-fun generatePointsFromExpenses(expenses: List<Expense>, daysBack: Int = 5): List<Point> {
-    val calendar = Calendar.getInstance()
-    val dailyTotals = FloatArray(daysBack) { 0f }
-
-    val now = Date()
-
-    for (expense in expenses) {
-        val expenseDate = expense.date.toDate() // Convert Firestore Timestamp to Date
-        val diff = ((now.time - expenseDate.time) / (1000 * 60 * 60 * 24)).toInt()
-
-        if (diff in 0 until daysBack) {
-            val index = daysBack - diff - 1 // Flip order to make 0 = oldest, last = today
-            dailyTotals[index] += expense.amount.toFloat()
-        }
-    }
-
-    return dailyTotals.mapIndexed { index, total -> Point(index.toFloat(), total) }
-}
-
-fun groupExpensesByDay(expenses: List<Expense>): Map<String, Float> {
-    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
-    Log.d("expenses", expenses.toString())
-    return expenses
-        .groupBy { sdf.format(it.date.toDate()) }
-        .mapValues { entry ->
-            entry.value.sumOf { it.amount.toDouble() }.toFloat()
-        }
-
-}
-
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: NavController) {
-    val expenses by viewModel.expenseList.collectAsStateWithLifecycle()
-
+fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
+    val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val now = Calendar.getInstance().time
+
     var selectedRange by remember { mutableStateOf("7d") }
-    val options = listOf("7d", "30d", "90d","1Y")
+    val options = listOf("7d", "30d", "90d", "1Y")
     val daysBack = when (selectedRange) {
         "7d" -> 7
         "30d" -> 30
@@ -102,67 +69,75 @@ fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: Nav
         "1Y" -> 365
         else -> 7
     }
-    val filteredExpenses = expenses.filter {
+
+    val filtered = transactions.filter {
         val diff = ((now.time - it.date.toDate().time) / (1000 * 60 * 60 * 24)).toInt()
         diff in 0 until daysBack
     }
 
-    val dateLabelFormat = when (daysBack) {
-        in 1..7 -> "EEE"            // Short day names for last 7 days
-        in 8..30 -> "MMM dd"        // Full dates for monthly view
-        else -> "MMM"               // Just the month for longer views
-    }
-    val labelSDF = SimpleDateFormat(dateLabelFormat, Locale.getDefault())
+    val expenses = filtered.filter { it.type == TransactionType.EXPENSE }
+    val incomes = filtered.filter { it.type == TransactionType.INCOME }
 
-    Log.d("expenses", expenses.toString())
     val totalSpent = expenses.sumOf { it.amount }
-    val groupedExpenses = groupExpensesByDay(filteredExpenses).toSortedMap() // keeps dates sorted
-    val labels = groupedExpenses.keys.toList()
-    val displayLabels = labels.map {
-        labelSDF.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
+    val totalEarned = incomes.sumOf { it.amount }
+
+    fun groupByDay(transactions: List<Transaction>): Map<String, Float> {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return transactions.groupBy { sdf.format(it.date.toDate()) }
+            .mapValues { entry -> entry.value.sumOf { it.amount.toDouble() }.toFloat() }
     }
 
-    val pointsData = if (groupedExpenses.isNotEmpty()) {
-        labels.mapIndexed { index, _ ->
-            Point(index.toFloat(), (groupedExpenses[labels[index]] ?: 0f))
-        }
-    } else emptyList()
+    val expenseGrouped = groupByDay(expenses).toSortedMap()
+    val incomeGrouped = groupByDay(incomes).toSortedMap()
 
-    val sdf = java.text.SimpleDateFormat("EEE", java.util.Locale.getDefault())
-    val today = Calendar.getInstance()
-    val dayLabels = (0 until 5).map {
-        today.add(Calendar.DAY_OF_YEAR, -1)
-        sdf.format(today.time)
-    }.reversed()
+    val dateFormat = when (daysBack) {
+        in 1..7 -> "EEE"
+        in 8..30 -> "MMM dd"
+        else -> "MMM"
+    }
+
+    val displayFormat = SimpleDateFormat(dateFormat, Locale.getDefault())
+
+    val allDates = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet()
+    val displayLabels = allDates.map {
+        displayFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
+    }
+
+    val expensePoints = allDates.mapIndexed { index, date ->
+        Point(index.toFloat(), expenseGrouped[date] ?: 0f)
+    }
+
+    val incomePoints = allDates.mapIndexed { index, date ->
+        Point(index.toFloat(), incomeGrouped[date] ?: 0f)
+    }
 
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val dynamicStepSize = screenWidth / (pointsData.size + 1)
+    val stepSize = screenWidth / (expensePoints.size + 1)
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(dynamicStepSize)
+        .axisStepSize(stepSize)
         .backgroundColor(Color.Transparent)
-        .steps(pointsData.size - 1)
+        .steps(expensePoints.size - 1)
         .labelData { i -> displayLabels.getOrElse(i) { "" } }
         .labelAndAxisLinePadding(10.dp)
         .build()
 
-    val maxY = (pointsData.maxOfOrNull { it.y } ?: 100f).coerceAtLeast(100f)
-    val yAxisSteps = 5
+    val maxY = listOf(
+        expensePoints.maxOfOrNull { it.y } ?: 0f,
+        incomePoints.maxOfOrNull { it.y } ?: 0f
+    ).maxOrNull()!!.coerceAtLeast(100f)
 
     val yAxisData = AxisData.Builder()
-        .steps(yAxisSteps)
+        .steps(5)
         .backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(20.dp)
-        .labelData { i ->
-            val step = maxY / yAxisSteps
-            "%.2f".format(i * step)
-        }
+        .labelData { i -> "%.2f".format(i * (maxY / 5)) }
         .build()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Spent") },
+                title = { Text("Analytics") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -170,46 +145,50 @@ fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: Nav
                 }
             )
         }
-    ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
-            Text("Total Spent", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("$${"%.2f".format(totalSpent)}", fontSize = 32.sp)
+    ) { padding ->
+        Column(Modifier.padding(padding)) {
+            Text("Total Spent", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text("$${"%.2f".format(totalSpent)}", fontSize = 30.sp)
+
+            Text("Total Earned", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text("+$${"%.2f".format(totalEarned)}", fontSize = 30.sp)
 
             Spacer(Modifier.height(24.dp))
-            Spacer(Modifier.height(24.dp))
 
-            // Future: Add a bar chart here for monthly trends
-
-            Text("Recent Transactions", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            expenses.take(5).forEach {
-                Text("${it.description}: $${it.amount}")
-            }
-            if (pointsData.isNotEmpty()) {
-            LineChart(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp),
-                lineChartData = LineChartData(
-                    linePlotData = LinePlotData(
-                        lines = listOf(
-                            Line(
-                                dataPoints = pointsData,
-                                lineStyle = LineStyle(color = Color.Blue),
-                                intersectionPoint = IntersectionPoint(),
-                                selectionHighlightPoint = SelectionHighlightPoint(),
-                                shadowUnderLine = ShadowUnderLine(),
-                                selectionHighlightPopUp = SelectionHighlightPopUp()
+            if (expensePoints.isNotEmpty() || incomePoints.isNotEmpty()) {
+                LineChart(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
+                    lineChartData = LineChartData(
+                        linePlotData = LinePlotData(
+                            lines = listOf(
+                                Line(
+                                    dataPoints = expensePoints,
+                                    lineStyle = LineStyle(color = Color.Red),
+                                    intersectionPoint = IntersectionPoint(),
+                                    selectionHighlightPoint = SelectionHighlightPoint(),
+                                    shadowUnderLine = ShadowUnderLine(),
+                                    selectionHighlightPopUp = SelectionHighlightPopUp()
+                                ),
+                                Line(
+                                    dataPoints = incomePoints,
+                                    lineStyle = LineStyle(color = Color.Green),
+                                    intersectionPoint = IntersectionPoint(),
+                                    selectionHighlightPoint = SelectionHighlightPoint(),
+                                    shadowUnderLine = ShadowUnderLine(),
+                                    selectionHighlightPopUp = SelectionHighlightPopUp()
+                                )
                             )
-                        )
-                    ),
-                    xAxisData = xAxisData,
-                    yAxisData = yAxisData,
-                    gridLines = GridLines(),
-                    backgroundColor = Color.White
+                        ),
+                        xAxisData = xAxisData,
+                        yAxisData = yAxisData,
+                        gridLines = GridLines(),
+                        backgroundColor = Color.White
+                    )
                 )
-            )
             } else {
-                Text("Not enough data to display chart.")
+                Text("Not enough data to show chart.")
             }
 
             Row {
@@ -232,13 +211,9 @@ fun Dashboard( viewModel: ExpenseListViewModel = viewModel(), navController: Nav
             ) {
                 Text("Log Out")
             }
-
         }
     }
 }
-
-
-
 
 @Preview(showBackground = true)
 @Composable

@@ -19,20 +19,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
-import com.example.exptrackpm.ui.screens.addexpense.AddExpenseScreen
 import com.example.exptrackpm.ui.screens.dashboard.Dashboard
-import com.example.exptrackpm.ui.screens.expenselist.ExpenseListScreen
 import com.example.exptrackpm.ui.screens.login.LoginScreen
 import com.example.exptrackpm.ui.screens.signup.SignUpScreen
+import com.example.exptrackpm.ui.screens.transactions.AddTransactionScreen
+import com.example.exptrackpm.ui.screens.transactions.TransactionListScreen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
     Dashboard("dashboard", "Dashboard", Icons.Default.Home),
-    Expenses("expenselist", "Expenses", Icons.Default.List),
-    Add("addexpense", "Add", Icons.Default.AddCircle),
+    Add("addtransaction", "Add", Icons.Default.AddCircle),
+    Transactions("transactionlist", "Transactions", Icons.Default.List),
 }
 
-
-// TODO: import and pass AuthViewModel as a param to each page
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Navigation() {
@@ -48,6 +46,7 @@ fun Navigation() {
                 BottomNavItem.entries.forEach { item ->
                     NavigationBarItem(
                         selected = currentRoute == item.route,
+                        enabled = isUserLoggedIn,
                         onClick = {
                             if (currentRoute != item.route) {
                                 navController.navigate(item.route) {
@@ -72,11 +71,11 @@ fun Navigation() {
             composable("signup") {
                 SignUpScreen(navController)
             }
-            composable("addexpense") {
-                AddExpenseScreen(navController = navController)
+            composable("addtransaction") {
+                AddTransactionScreen(navController = navController)
             }
-            composable("expenselist") {
-                ExpenseListScreen(navController = navController)
+            composable("transactionlist") {
+              TransactionListScreen(navController = navController)
             }
             composable("dashboard") {
                Dashboard(navController = navController)

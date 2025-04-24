@@ -1,8 +1,5 @@
 package com.example.exptrackpm.ui.screens.login
 
-import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,11 +35,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.AuthResponse
 import com.example.exptrackpm.auth.AuthenticationManager
 import com.example.exptrackpm.theme.ExpTrackPMTheme
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -106,7 +98,10 @@ fun LoginScreen(navController: NavController) {
                     .onEach { response ->
                         isLoading = false
                         when (response) {
-                            is AuthResponse.Success -> navController.navigate("dashboard")
+                            is AuthResponse.Success -> navController.navigate("dashboard") {
+                                popUpTo(0) // removes everything from back stack
+                                launchSingleTop = true
+                            }
                             is AuthResponse.Error -> errorMessage = response.message
                         }
                     }

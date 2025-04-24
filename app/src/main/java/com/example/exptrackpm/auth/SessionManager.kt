@@ -47,15 +47,14 @@ object SessionManager {
     }
 }
 
-class AuthenticationManager(context: Context) {
+class AuthenticationManager(private val context: Context) {
     private val auth = Firebase.auth
-    private val context = context
 
     fun createAccountWithEmail(email:String, password: String): Flow<AuthResponse> = callbackFlow {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
+                    // Sign in success
                     Log.d("signup", "createUserWithEmail:success")
                     val user = auth.currentUser
                     trySend(AuthResponse.Success)
