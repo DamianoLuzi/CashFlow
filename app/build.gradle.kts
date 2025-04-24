@@ -87,5 +87,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
 
     implementation("com.google.firebase:firebase-auth")
+    //YCharts
+    implementation ("co.yml:ycharts:2.1.0")
 
 }

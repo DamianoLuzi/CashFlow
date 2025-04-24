@@ -1,10 +1,12 @@
-package com.example.exptrackpm.ui.screens.addexpense
+package com.example.exptrackpm.ui.screens.transactions
 
+import TransactionType
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -38,48 +41,35 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.exptrackpm.theme.ExpTrackPMTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController: NavController) {
+fun AddTransactionScreen(
+    navController: NavController,
+    viewModel: TransactionViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
+    var transactionType by remember { mutableStateOf(TransactionType.EXPENSE) }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var receiptUrl by remember { mutableStateOf("") }
-    var isSubmitting by remember { mutableStateOf(false) } // Flag to show loading state
-    val categories = listOf("Food", "Travel", "Entertainment", "Other")
     var expanded by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+    var isSubmitting by remember { mutableStateOf(false) }
 
-    val handleSubmit = {
-        if (amount.isNotEmpty() && description.isNotEmpty() && category.isNotEmpty()) {
-            val amountDouble = amount.toDoubleOrNull()
-            if (amountDouble != null) {
-                // Call the ViewModel to add the expense
-                scope.launch {
-                    isSubmitting = true
-                    viewModel.addExpense(amountDouble, description, category, receiptUrl)
-                    isSubmitting = false
-                    Toast.makeText(context, "Expense added successfully", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(context, "Please enter a valid amount", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val categories = listOf("Food", "Travel", "Salary", "Work", "Entertainment", "Other")
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Add Expense") },
+                title = { Text("Add Transaction") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -87,11 +77,22 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(16.dp)
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            // Transaction Type Toggle
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                listOf(TransactionType.EXPENSE, TransactionType.INCOME).forEach { type ->
+                    FilterChip(
+                        selected = transactionType == type,
+                        onClick = { transactionType = type },
+                        label = { Text(type.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = amount,
@@ -108,6 +109,7 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Dropdown for Category
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = category,
@@ -116,21 +118,16 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { expanded = !expanded }) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowDropDown,
-                                contentDescription = "Dropdown Arrow"
-                            )
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown Arrow")
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { expanded = true } // makes the whole field clickable
+                        .clickable { expanded = true }
                 )
-
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth()
                 ) {
                     categories.forEach { option ->
                         DropdownMenuItem(
@@ -152,15 +149,32 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
             )
 
             Button(
-                //viewModel.addExpense(amount.toDouble(), description, category, receiptUrl)
-                onClick = {handleSubmit()},
-                modifier = Modifier.fillMaxWidth(),
-                //enabled = !isSubmitting // Disable the button when submitting
+                onClick = {
+                    val amountDouble = amount.toDoubleOrNull()
+                    if (amountDouble != null && description.isNotBlank() && category.isNotBlank()) {
+                        isSubmitting = true
+                        scope.launch {
+                            viewModel.addTransaction(
+                                amount = amountDouble,
+                                description = description,
+                                category = category,
+                                type = transactionType,
+                                receiptUrl = if (receiptUrl.isBlank()) null else receiptUrl
+                            )
+                            isSubmitting = false
+                            Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        }
+                    } else {
+                        Toast.makeText(context, "Please fill out all required fields", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 if (isSubmitting) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 } else {
-                    Text("Add Expense")
+                    Text("Save")
                 }
             }
         }
@@ -171,7 +185,9 @@ fun AddExpenseScreen(viewModel: AddExpenseViewModel = viewModel(),navController:
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewAddExpenseScreen() {
+fun AddTransactionScreenPreview() {
     val navController = rememberNavController()
-    //AddExpenseScreen(navController = navController)
+    ExpTrackPMTheme {
+       AddTransactionScreen(navController = navController)
+    }
 }

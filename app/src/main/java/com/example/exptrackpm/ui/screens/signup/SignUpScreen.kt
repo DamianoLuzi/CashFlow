@@ -1,4 +1,4 @@
-package com.example.exptrackpm.ui.screens.login
+package com.example.exptrackpm.ui.screens.signup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,20 +31,21 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.AuthResponse
 import com.example.exptrackpm.auth.AuthenticationManager
+import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun SignUpScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
-    val authManager = remember { AuthenticationManager(context) }
     val coroutineScope = rememberCoroutineScope()
+    val authManager = remember { AuthenticationManager(context) }
 
     Column(
         modifier = Modifier
@@ -55,81 +53,91 @@ fun LoginScreen(navController: NavController) {
             .padding(20.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Welcome Back", style = MaterialTheme.typography.headlineMedium)
-        Text("Please sign in to continue", style = MaterialTheme.typography.bodyMedium)
+        Text("Sign Up", style = MaterialTheme.typography.titleLarge)
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
             leadingIcon = { Icon(Icons.Rounded.Email, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
             leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null) },
+            label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth()
         )
 
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(it, color = MaterialTheme.colorScheme.error)
+        OutlinedTextField(
+            value = confirmPassword,
+            leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null) },
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage ?: "",
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                isLoading = true
-                errorMessage = null
+        Button(onClick = {
+            if (password != confirmPassword) {
+                errorMessage = "Passwords do not match"
+                return@Button
+            }
+            if (email.isBlank() || password.length < 6) {
+                errorMessage = "Enter valid email and password (min 6 chars)"
+                return@Button
+            }
 
-                authManager
-                    .logInWithEmail(email, password)
-                    .onEach { response ->
-                        isLoading = false
-                        when (response) {
-                            is AuthResponse.Success -> navController.navigate("dashboard") {
+            authManager.createAccountWithEmail(email, password)
+                .onEach { result ->
+                    when (result) {
+                        is AuthResponse.Success -> {
+                            SessionManager.startAutoLogoutTimer(30 * 60 * 1000) // 30 min
+                            navController.navigate("dashboard")
+                            {
                                 popUpTo(0) // removes everything from back stack
                                 launchSingleTop = true
                             }
-                            is AuthResponse.Error -> errorMessage = response.message
+                        }
+                        is AuthResponse.Error -> {
+                            errorMessage = result.message
                         }
                     }
-                    .launchIn(coroutineScope)
-            },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp)) else Text("Sign In")
-        }
+                }.launchIn(coroutineScope)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        }) {
+            Text("Create Account")
+        }
 
         TextButton(onClick = {
-            navController.navigate("signup")
+            navController.navigate("login") // Go back to login
         }) {
-            Text("Don’t have an account? Sign Up")
+            Text("Already have an account? Sign in")
         }
-
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun LoginScreenPreview() {
+fun SignUpScreenPreview() {
     val navController = rememberNavController()
     ExpTrackPMTheme {
-    LoginScreen(navController = navController)
+        SignUpScreen(navController = navController)
     }
 }
 
