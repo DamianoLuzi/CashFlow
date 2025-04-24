@@ -90,4 +90,7 @@ dependencies {
     //YCharts
     implementation ("co.yml:ycharts:2.1.0")
 
+    //Firebase storage
+    implementation("com.google.firebase:firebase-storage-ktx")
+
 }

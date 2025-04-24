@@ -1,7 +1,11 @@
 package com.example.exptrackpm.ui.screens.transactions
 
 import TransactionType
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,8 +62,16 @@ fun AddTransactionScreen(
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var receiptUrl by remember { mutableStateOf("") }
+    var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     var expanded by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedFileUri = uri
+        Log.d("FilePicker", "Selected URI: $uri")
+    }
 
     val categories = listOf("Food", "Travel", "Salary", "Work", "Entertainment", "Other")
 
@@ -147,29 +159,68 @@ fun AddTransactionScreen(
                 label = { Text("Receipt URL (optional)") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Button(onClick = { filePickerLauncher.launch("*/*") }) {
+                Text(if (selectedFileUri != null) "File Selected" else "Attach Receipt/File")
+            }
+
 
             Button(
-                onClick = {
+//                onClick = {
+//                    val amountDouble = amount.toDoubleOrNull()
+//                    if (amountDouble != null && description.isNotBlank() && category.isNotBlank()) {
+//                        isSubmitting = true
+//                        scope.launch {
+//                            viewModel.addTransaction(
+//                                amount = amountDouble,
+//                                description = description,
+//                                category = category,
+//                                type = transactionType,
+//                                receiptUrl = if (receiptUrl.isBlank()) null else receiptUrl
+//                            )
+//                            isSubmitting = false
+//                            Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
+//                            navController.popBackStack()
+//                        }
+//                    } else {
+//                        Toast.makeText(context, "Please fill out all required fields", Toast.LENGTH_SHORT).show()
+//                    }
+//                },
+                modifier = Modifier.fillMaxWidth(),
+                        onClick = {
                     val amountDouble = amount.toDoubleOrNull()
                     if (amountDouble != null && description.isNotBlank() && category.isNotBlank()) {
                         isSubmitting = true
                         scope.launch {
-                            viewModel.addTransaction(
-                                amount = amountDouble,
-                                description = description,
-                                category = category,
-                                type = transactionType,
-                                receiptUrl = if (receiptUrl.isBlank()) null else receiptUrl
-                            )
-                            isSubmitting = false
-                            Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack()
-                        }
-                    } else {
-                        Toast.makeText(context, "Please fill out all required fields", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
+                            if (selectedFileUri != null) {
+                                viewModel.uploadReceiptAndAddTransaction(
+                                    fileUri = selectedFileUri!!,
+                                    amount = amountDouble,
+                                    description = description,
+                                    category = category,
+                                    type = transactionType,
+                                    onComplete = {
+                                        isSubmitting = false
+                                        Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
+                                        navController.popBackStack()
+                                    },
+                                    onError = {
+                                        isSubmitting = false
+                                        Toast.makeText(context, "Upload failed: $it", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            } else {
+                                viewModel.addTransaction(
+                                    amount = amountDouble,
+                                    description = description,
+                                    category = category,
+                                    type = transactionType,
+                                    receiptUrl = null
+                                )
+                                isSubmitting = false
+                                Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            }
+                        }}}
             ) {
                 if (isSubmitting) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))

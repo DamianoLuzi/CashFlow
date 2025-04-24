@@ -3,6 +3,7 @@ package com.example.exptrackpm.ui.screens.transactions
 import Transaction
 import TransactionService
 import TransactionType
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
@@ -59,4 +60,26 @@ class TransactionViewModel : ViewModel() {
             loadTransactions()
         }
     }
+
+    fun uploadReceiptAndAddTransaction(
+        fileUri: Uri,
+        amount: Double,
+        description: String,
+        category: String,
+        type: TransactionType,
+        onComplete: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        TransactionService.uploadFile(
+            fileUri = fileUri,
+            onSuccess = { downloadUrl ->
+                addTransaction(amount, description, category, type, downloadUrl)
+                onComplete()
+            },
+            onFailure = { ex ->
+                onError(ex.localizedMessage ?: "Upload failed")
+            }
+        )
+    }
+
 }
