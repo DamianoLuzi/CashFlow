@@ -6,6 +6,8 @@ import TransactionType
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 
 
 class TransactionViewModel : ViewModel() {
+    private val auth = Firebase.auth
     private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
     val transactions = _transactions.asStateFlow()
 
@@ -46,7 +49,7 @@ class TransactionViewModel : ViewModel() {
         receiptUrl: String? = null
     ) {
         val txn = Transaction(
-            id = "", //Firestore autogenerates it
+            userId =  auth.currentUser!!.uid,
             amount = amount,
             description = description,
             category = category,
