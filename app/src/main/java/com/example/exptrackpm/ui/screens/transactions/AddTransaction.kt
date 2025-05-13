@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,7 +62,31 @@ fun AddTransactionScreen(
     var expanded by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
 
-    val categories = listOf("Food", "Travel", "Salary", "Work", "Entertainment", "Other")
+    val categories = listOf(
+        "Food",
+        "Travel",
+        "Salary",
+        "Work",
+        "Entertainment",
+        "Shopping",
+        "Transfers",
+        "General",
+        "Services",
+        "Groceries",
+        "Other")
+
+    val customCategories = remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getUserCategories { fetchedCategories ->
+            customCategories.value = fetchedCategories
+        }
+    }
+
+    val allCategories = listOf(
+        "Food", "Travel", "Salary", "Entertainment", "Shopping", "Transfers", "General"
+    ) + customCategories.value
+
 
     Scaffold(
         topBar = {

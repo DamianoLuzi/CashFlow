@@ -62,4 +62,8 @@ class TransactionViewModel : ViewModel() {
             loadTransactions()
         }
     }
+
+    fun getUserCategories(any: Any) {
+
+    }
 }
