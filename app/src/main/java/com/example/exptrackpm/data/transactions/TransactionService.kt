@@ -14,7 +14,7 @@ object TransactionService {
         val userId = auth.currentUser?.uid ?: return
 
         val txn = Transaction(
-            id = "", //Firestore autogenerates it
+            userId = userId, //Firestore autogenerates it
             amount = transaction.amount,
             description = transaction.description,
             category = transaction.category,
@@ -23,7 +23,7 @@ object TransactionService {
             receiptUrl = transaction.receiptUrl
         )
 
-        db.collection("expense")
+        db.collection("transaction")
             .add(txn)
             .addOnSuccessListener { onSuccess() }
             .addOnFailureListener { onFailure(it) }
@@ -34,7 +34,7 @@ object TransactionService {
         val userId = auth.currentUser?.uid ?: return
         Log.d("trans",userId )
 
-        db.collection("expense")
+        db.collection("transaction")
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) return@addSnapshotListener
