@@ -1,43 +1,63 @@
 package com.example.exptrackpm.ui.screens.categories
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.google.firebase.Timestamp
+import com.example.exptrackpm.data.categories.CategoryService
+import com.example.exptrackpm.domain.model.Category
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class CategoryViewModel : ViewModel() {
-    private val db = Firebase.firestore
     private val auth = Firebase.auth
+//    var categories by mutableStateOf<List<Category>>(emptyList())
+//        private set
+
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories = _categories.asStateFlow()
+
+    var name by mutableStateOf("")
+    var icon by mutableStateOf<String?>(null)
+    var color by mutableStateOf<String?>(null)
+    var error by mutableStateOf<String?>(null)
 
     init {
-
+        loadCategories()
     }
 
-    fun addCategory(name: String, icon: String?, color: String?) {
-        val userId = auth.currentUser?.uid ?: return
-        val categoryData = hashMapOf(
-            "name" to name,
-            "icon" to icon,
-            "color" to color,
-            "createdAt" to Timestamp.now()
+    fun loadCategories() {
+        CategoryService.getUserCategories {
+            _categories.value = it
+        }
+    }
+
+    fun addCategory(
+        name: String,
+        icon: String,
+        color: String
+    ) {
+        val uid = auth.currentUser?.uid ?: return
+
+        if (name.isBlank()) {
+            error = "Category name can't be blank!"
+            return
+        }
+
+        var newCategory = Category(
+            userId = uid,
+            name = name,
+            icon = icon,
+            color = color
         )
 
-        db.collection("users")
-            .document(userId)
-            .collection("categories")
-            .add(categoryData)
-    }
-
-    fun getUserCategories(onResult: (List<String>) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
-        db.collection("users")
-            .document(userId)
-            .collection("categories")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val categories = snapshot.documents.mapNotNull { it.getString("name") }
-                onResult(categories)
-            }
+        CategoryService.addCategory(newCategory, {
+            loadCategories()
+        }, {
+            error = it.localizedMessage
+        })
     }
 }
+

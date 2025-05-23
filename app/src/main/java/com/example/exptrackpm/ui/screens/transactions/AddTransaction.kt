@@ -28,7 +28,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,11 +76,11 @@ fun AddTransactionScreen(
 
     val customCategories = remember { mutableStateOf<List<String>>(emptyList()) }
 
-    LaunchedEffect(Unit) {
-        viewModel.getUserCategories { fetchedCategories ->
-            customCategories.value = fetchedCategories
-        }
-    }
+//    LaunchedEffect(Unit) {
+//        viewModel.getUserCategories { fetchedCategories ->
+//            customCategories.value = fetchedCategories
+//        }
+//    }
 
     val allCategories = listOf(
         "Food", "Travel", "Salary", "Entertainment", "Shopping", "Transfers", "General"
@@ -163,6 +162,13 @@ fun AddTransactionScreen(
                             }
                         )
                     }
+                    DropdownMenuItem(
+                        text = { Text("➕ Add Custom Category") },
+                        onClick = {
+                            expanded = false
+                            navController.navigate("addcategory")
+                        }
+                    )
                 }
             }
 

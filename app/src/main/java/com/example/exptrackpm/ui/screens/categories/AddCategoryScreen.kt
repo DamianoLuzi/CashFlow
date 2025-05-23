@@ -48,7 +48,7 @@ fun AddCategoryScreen(
         OutlinedTextField(
             value = color,
             onValueChange = { color = it },
-            label = { Text("Color (#hex)") },
+            label = { Text("Color") },
             modifier = Modifier.fillMaxWidth()
         )
         Button(
