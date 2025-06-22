@@ -66,4 +66,29 @@ class TransactionViewModel : ViewModel() {
     fun getUserCategories(any: Any) {
 
     }
+
+    fun getTransactionById(id: String) = transactions
+        .combine(transactions) { txns, _ ->
+            txns.find { it.id == id }
+        }
+
+    fun updateTransaction(
+        id: String,
+        amount: Double,
+        description: String,
+        category: String,
+        receiptUrl: String?
+    ) {
+        val updatedTxn = transactions.value.find { it.id == id }?.copy(
+            amount = amount,
+            description = description,
+            category = category,
+            receiptUrl = receiptUrl
+        ) ?: return
+
+        TransactionService.updateTransaction(updatedTxn) {
+            loadTransactions()
+        }
+    }
+
 }

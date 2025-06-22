@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,7 +8,11 @@ plugins {
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
 }
-
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
 android {
     namespace = "com.example.exptrackpm"
     compileSdk = 35
@@ -18,6 +25,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${localProperties["SUPABASE_URL"]}\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_ANON_KEY",
+            "\"${localProperties["SUPABASE_ANON_KEY"]}\""
+        )
     }
 
     buildTypes {
@@ -38,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -80,14 +98,19 @@ dependencies {
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
     // Import the BoM for the Firebase platform
-
-
     // Declare the dependency for the Cloud Firestore library
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-firestore")
-
     implementation("com.google.firebase:firebase-auth")
     //YCharts
     implementation ("co.yml:ycharts:2.1.0")
+    //Supabase storage
+    implementation("io.github.jan-tennert.supabase:storage-kt:3.1.4")
+    // Ktor client (required by Supabase-kt)
+    implementation("io.ktor:ktor-client-android:3.1.3")
+    implementation("io.ktor:ktor-client-content-negotiation:3.1.3")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.3")
+    // Coil for image loading
+    implementation("io.coil-kt.coil3:coil-compose:3.2.0")
 
 }

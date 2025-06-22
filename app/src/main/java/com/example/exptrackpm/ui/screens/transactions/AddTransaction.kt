@@ -1,7 +1,10 @@
 package com.example.exptrackpm.ui.screens.transactions
 
 import TransactionType
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.exptrackpm.data.storage.SupabaseStorageService
 import com.example.exptrackpm.domain.model.Category
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.categories.CategoryViewModel
@@ -64,19 +68,8 @@ fun AddTransactionScreen(
     var receiptUrl by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val customCategories by catViewModel.categories.collectAsStateWithLifecycle()
-//    val categories = listOf(
-//        "Food",
-//        "Travel",
-//        "Salary",
-//        "Work",
-//        "Entertainment",
-//        "Shopping",
-//        "Transfers",
-//        "General",
-//        "Services",
-//        "Groceries",
-//        "Other")
     val categories = listOf(
         Category(name = "Food", icon = "🍔"),
         Category(name = "Travel", icon = "✈️"),
@@ -91,16 +84,6 @@ fun AddTransactionScreen(
         Category(name = "Other", icon = "🤷"),
         // Add more as needed
     )
-
-//    LaunchedEffect(Unit) {
-//        viewModel.getUserCategories { fetchedCategories ->
-//            customCategories.value = fetchedCategories
-//        }
-//    }
-
-//    val allCategories = listOf(
-//        "Food", "Travel", "Salary", "Entertainment", "Shopping", "Transfers", "General"
-//    ) + customCategories.value
 
     val allCategories = remember(customCategories) {
         (categories + customCategories.map { it.name })
@@ -214,14 +197,6 @@ fun AddTransactionScreen(
                                 expanded = false
                             }
                         )
-//                        option ->
-//                        DropdownMenuItem(
-//                            text = { Text(option) },
-//                            onClick = {
-//                                category = option
-//                                expanded = false
-//                            }
-//                        )
                     }
                     DropdownMenuItem(
                         text = { Text("➕ Add Custom Category") },
@@ -232,13 +207,12 @@ fun AddTransactionScreen(
                     )
                 }
             }
-
-            OutlinedTextField(
-                value = receiptUrl,
-                onValueChange = { receiptUrl = it },
-                label = { Text("Receipt URL (optional)") },
-                modifier = Modifier.fillMaxWidth()
+            Text("Receipt (optional)")
+            AddTrnReceiptUploader(
+                onImageSelected = { uri -> selectedImageUri = uri }
             )
+            if (selectedImageUri != null) {
+                Text("Selected: ${SupabaseStorageService.getFileName(context, selectedImageUri!!) ?: "Image"}")}
 
             Button(
                 onClick = {
@@ -246,12 +220,19 @@ fun AddTransactionScreen(
                     if (amountDouble != null && description.isNotBlank() && category.isNotBlank()) {
                         isSubmitting = true
                         scope.launch {
+                            var receiptUrl: String? = null
+                            selectedImageUri?.let { uri ->
+                                val fileName = SupabaseStorageService.getFileName(context, uri)
+                                //val filePath = uploadFileToSupabase(context, uri, fileName)
+                                val filePath = SupabaseStorageService.uploadFileToSupabase(context, uri,fileName)
+                                receiptUrl = filePath?.let { SupabaseStorageService.getPublicUrlFromSupabase(it) }
+                            }
                             trnViewModel.addTransaction(
                                 amount = amountDouble,
                                 description = description,
                                 category = category,
                                 type = transactionType,
-                                receiptUrl = if (receiptUrl.isBlank()) null else receiptUrl
+                                receiptUrl = if (receiptUrl!!.isBlank()) null else receiptUrl
                             )
                             isSubmitting = false
                             Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
@@ -273,6 +254,20 @@ fun AddTransactionScreen(
     }
 }
 
+@Composable
+fun AddTrnReceiptUploader(
+    onImageSelected: (Uri?) -> Unit
+) {
+    val context = LocalContext.current
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        onImageSelected(uri)
+    }
+    Button(onClick = { pickImageLauncher.launch("*/*") }) {
+        Text("Select Receipt Image")
+    }
+}
 
 
 @Preview(showBackground = true)
