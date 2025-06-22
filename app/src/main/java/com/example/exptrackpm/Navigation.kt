@@ -78,7 +78,7 @@ fun Navigation() {
               TransactionListScreen(navController = navController)
             }
             composable("dashboard") {
-               Dashboard(navController = navController)
+                Dashboard(navController = navController)
             }
         })
     }
