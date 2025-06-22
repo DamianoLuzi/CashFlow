@@ -2,20 +2,27 @@ package com.example.exptrackpm.ui.screens.dashboard
 
 import Transaction
 import TransactionType
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,13 +30,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -53,12 +60,13 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
+    Log.d("trn", transactions.toString())
     val now = Calendar.getInstance().time
+    val dateRanges = listOf("7d", "30d", "90d", "1Y")
 
     var selectedRange by remember { mutableStateOf("7d") }
     val options = listOf("7d", "30d", "90d", "1Y")
@@ -89,35 +97,57 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
 
     val expenseGrouped = groupByDay(expenses).toSortedMap()
     val incomeGrouped = groupByDay(incomes).toSortedMap()
+    Log.d("grouped",expenseGrouped.toString())
+    Log.d("grouped",incomeGrouped.toString())
+    //improv
+    val allDatesSorted = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet().toList()
 
     val dateFormat = when (daysBack) {
         in 1..7 -> "EEE"
         in 8..30 -> "MMM dd"
         else -> "MMM"
     }
+    val dateToIndex = allDatesSorted.withIndex().associate { it.value to it.index.toFloat() }
+    Log.d("index",dateToIndex.toString())
 
     val displayFormat = SimpleDateFormat(dateFormat, Locale.getDefault())
 
     val allDates = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet()
-    val displayLabels = allDates.map {
+    val displayLabels = allDatesSorted.map {
         displayFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
     }
 
     val expensePoints = allDates.mapIndexed { index, date ->
         Point(index.toFloat(), expenseGrouped[date] ?: 0f)
+        //expenseGrouped[date]?.takeIf { it > 0f }?.let { Point(index.toFloat(), it) }
     }
 
     val incomePoints = allDates.mapIndexed { index, date ->
         Point(index.toFloat(), incomeGrouped[date] ?: 0f)
     }
+//    val incomePoints = incomeGrouped.mapNotNull { (date, amount) ->
+//        if (amount != 0f) dateToIndex[date]?.let { co.yml.charts.common.model.Point(it, amount.toFloat()) } else null
+//    }
+
+
+    Log.d("exppoints",expensePoints.toString())
+    Log.d("incpoints", incomePoints.toString())
+
+
 
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val stepSize = screenWidth / (expensePoints.size + 1)
+    //val stepSize = screenWidth / (expensePoints.size + 1)
+    val stepSize = if (allDatesSorted.isNotEmpty()) {
+        screenWidth / (allDatesSorted.size + 1)
+    } else {
+        1.dp // avoid divide-by-zero if somehow empty
+    }
 
     val xAxisData = AxisData.Builder()
         .axisStepSize(stepSize)
         .backgroundColor(Color.Transparent)
-        .steps(expensePoints.size - 1)
+        //.steps(expensePoints.size - 1)
+        .steps(allDatesSorted.size - 1)
         .labelData { i -> displayLabels.getOrElse(i) { "" } }
         .labelAndAxisLinePadding(10.dp)
         .build()
@@ -127,12 +157,19 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
         incomePoints.maxOfOrNull { it.y } ?: 0f
     ).maxOrNull()!!.coerceAtLeast(100f)
 
+
     val yAxisData = AxisData.Builder()
         .steps(5)
         .backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(20.dp)
-        .labelData { i -> "%.2f".format(i * (maxY / 5)) }
+        .labelData { i -> "%.2f".format(i * (maxY/5f)) }
         .build()
+
+            TimeRangePicker(
+                options = dateRanges,
+                selectedOption = selectedRange,
+                onOptionSelected = { selectedRange = it }
+            )
 
     Scaffold(
         topBar = {
@@ -146,12 +183,18 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
             )
         }
     ) { padding ->
-        Column(Modifier.padding(padding)) {
-            Text("Total Spent", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            Text("$${"%.2f".format(totalSpent)}", fontSize = 30.sp)
-
-            Text("Total Earned", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            Text("+$${"%.2f".format(totalEarned)}", fontSize = 30.sp)
+        Column(modifier = Modifier
+            .padding(padding)
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState())
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Summary("Total Spent", "-$${"%.2f".format(totalSpent)}", MaterialTheme.colorScheme.error, Modifier.weight(1f))
+                Summary("Total Earned", "+$${"%.2f".format(totalEarned)}", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            }
 
             Spacer(Modifier.height(24.dp))
 
@@ -164,20 +207,34 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
                         linePlotData = LinePlotData(
                             lines = listOf(
                                 Line(
-                                    dataPoints = expensePoints,
-                                    lineStyle = LineStyle(color = Color.Red),
-                                    intersectionPoint = IntersectionPoint(),
-                                    selectionHighlightPoint = SelectionHighlightPoint(),
-                                    shadowUnderLine = ShadowUnderLine(),
-                                    selectionHighlightPopUp = SelectionHighlightPopUp()
-                                ),
-                                Line(
                                     dataPoints = incomePoints,
                                     lineStyle = LineStyle(color = Color.Green),
                                     intersectionPoint = IntersectionPoint(),
                                     selectionHighlightPoint = SelectionHighlightPoint(),
                                     shadowUnderLine = ShadowUnderLine(),
-                                    selectionHighlightPopUp = SelectionHighlightPopUp()
+                                    selectionHighlightPopUp = SelectionHighlightPopUp(
+                                        popUpLabel = { x, y ->
+                                            val index = x.toInt().coerceIn(0, displayLabels.lastIndex)
+                                            val label = displayLabels[index]
+                                            val amount = "%.2f".format(y)
+                                            "$label: +€$amount"
+                                        }
+                                    )
+                                ),
+                                Line(
+                                    dataPoints = expensePoints,
+                                    lineStyle = LineStyle(color = Color.Red),
+                                    intersectionPoint = IntersectionPoint(),
+                                    selectionHighlightPoint = SelectionHighlightPoint(),
+                                    shadowUnderLine = ShadowUnderLine(),
+                                    selectionHighlightPopUp = SelectionHighlightPopUp(
+                                        popUpLabel = { x, y ->
+                                            val index = x.toInt().coerceIn(0, displayLabels.lastIndex)
+                                            val label = displayLabels[index]
+                                            val amount = "%.2f".format(y)
+                                            "$label: -€$amount"
+                                        }
+                                    )
                                 )
                             )
                         ),
@@ -211,6 +268,32 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
             ) {
                 Text("Log Out")
             }
+        }
+    }
+}
+@Composable
+fun Summary(label: String, amount: String, amountColor: Color, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = label, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(text = amount, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = amountColor)
+        }
+    }
+}
+@Composable
+fun TimeRangePicker(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        options.forEach { label ->
+            FilterChip(
+                modifier = Modifier.padding(horizontal = 4.dp),
+                selected = selectedOption == label,
+                onClick = { onOptionSelected(label) },
+                label = { Text(label) }
+            )
         }
     }
 }
