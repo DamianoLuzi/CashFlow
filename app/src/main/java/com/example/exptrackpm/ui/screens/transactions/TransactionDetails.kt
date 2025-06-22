@@ -1,5 +1,6 @@
 package com.example.exptrackpm.ui.screens.transactions
 
+import Transaction
 import android.app.DatePickerDialog
 import android.net.Uri
 import android.widget.Toast
@@ -61,6 +62,7 @@ fun TransactionDetailsScreen(
     val coroutineScope = rememberCoroutineScope()
     val transaction by trnViewModel.getTransactionById(transactionId)
         .collectAsStateWithLifecycle(initialValue = null)
+
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -92,6 +94,7 @@ fun TransactionDetailsScreen(
     }
 
     LaunchedEffect(transaction) {
+        transaction?.let { it: Transaction ->
         transaction?.let { //it: Transaction ->
             amount = it.amount.toString()
             description = it.description
