@@ -38,17 +38,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.exptrackpm.domain.model.Category
 import com.example.exptrackpm.theme.ExpTrackPMTheme
+import com.example.exptrackpm.ui.screens.categories.CategoryViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(
     navController: NavController,
-    viewModel: TransactionViewModel = viewModel()
+    trnViewModel: TransactionViewModel = viewModel(),
+    catViewModel: CategoryViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -60,21 +64,33 @@ fun AddTransactionScreen(
     var receiptUrl by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
-
+    val customCategories by catViewModel.categories.collectAsStateWithLifecycle()
+//    val categories = listOf(
+//        "Food",
+//        "Travel",
+//        "Salary",
+//        "Work",
+//        "Entertainment",
+//        "Shopping",
+//        "Transfers",
+//        "General",
+//        "Services",
+//        "Groceries",
+//        "Other")
     val categories = listOf(
-        "Food",
-        "Travel",
-        "Salary",
-        "Work",
-        "Entertainment",
-        "Shopping",
-        "Transfers",
-        "General",
-        "Services",
-        "Groceries",
-        "Other")
-
-    val customCategories = remember { mutableStateOf<List<String>>(emptyList()) }
+        Category(name = "Food", icon = "🍔"),
+        Category(name = "Travel", icon = "✈️"),
+        Category(name = "Salary", icon = "💰"),
+        Category(name = "Work", icon = "💼"),
+        Category(name = "Entertainment", icon = "🎬"),
+        Category(name = "Shopping", icon = "🛍️"),
+        Category(name = "Transfers", icon = "💸"),
+        Category(name = "General", icon = "🏠"),
+        Category(name = "Services", icon = "🔧"),
+        Category(name = "Groceries", icon = "🛒"),
+        Category(name = "Other", icon = "🤷"),
+        // Add more as needed
+    )
 
 //    LaunchedEffect(Unit) {
 //        viewModel.getUserCategories { fetchedCategories ->
@@ -82,9 +98,37 @@ fun AddTransactionScreen(
 //        }
 //    }
 
-    val allCategories = listOf(
-        "Food", "Travel", "Salary", "Entertainment", "Shopping", "Transfers", "General"
-    ) + customCategories.value
+//    val allCategories = listOf(
+//        "Food", "Travel", "Salary", "Entertainment", "Shopping", "Transfers", "General"
+//    ) + customCategories.value
+
+    val allCategories = remember(customCategories) {
+        (categories + customCategories.map { it.name })
+            .distinct()
+    }
+
+    val allCategoriesForDisplay = remember(customCategories) {
+        val combinedList = mutableListOf<Category>()
+
+        // Add default categories first
+        categories.forEach { defaultCat ->
+            combinedList.add(defaultCat)
+        }
+
+        // Add custom categories, preferring custom ones if names overlap
+        customCategories.forEach { customCat ->
+            val existingIndex = combinedList.indexOfFirst { it.name == customCat.name }
+            if (existingIndex != -1) {
+                // If a custom category with the same name exists, replace the default one
+                combinedList[existingIndex] = customCat
+            } else {
+                // Otherwise, add the custom category
+                combinedList.add(customCat)
+            }
+        }
+        combinedList.sortedBy { it.name } // Sort by name for display
+    }
+
 
 
     Scaffold(
@@ -153,14 +197,31 @@ fun AddTransactionScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                 ) {
-                    categories.forEach { option ->
+                    allCategoriesForDisplay.forEach {
+                            cat -> // Renamed `option` to `cat` for clarity
                         DropdownMenuItem(
-                            text = { Text(option) },
+                            text = {
+                                Row(
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between emoji and text
+                                ) {
+                                    Text(text = cat.icon ?: "") // Display emoji
+                                    Text(text = cat.name)        // Display category name
+                                }
+                            },
                             onClick = {
-                                category = option
+                                category = cat.name // Save only the name to the transaction
                                 expanded = false
                             }
                         )
+//                        option ->
+//                        DropdownMenuItem(
+//                            text = { Text(option) },
+//                            onClick = {
+//                                category = option
+//                                expanded = false
+//                            }
+//                        )
                     }
                     DropdownMenuItem(
                         text = { Text("➕ Add Custom Category") },
@@ -185,7 +246,7 @@ fun AddTransactionScreen(
                     if (amountDouble != null && description.isNotBlank() && category.isNotBlank()) {
                         isSubmitting = true
                         scope.launch {
-                            viewModel.addTransaction(
+                            trnViewModel.addTransaction(
                                 amount = amountDouble,
                                 description = description,
                                 category = category,
