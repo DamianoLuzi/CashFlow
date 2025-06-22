@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
+import com.example.exptrackpm.ui.screens.categories.AddCategoryScreen
 import com.example.exptrackpm.ui.screens.dashboard.Dashboard
 import com.example.exptrackpm.ui.screens.login.LoginScreen
 import com.example.exptrackpm.ui.screens.signup.SignUpScreen
@@ -79,6 +80,9 @@ fun Navigation() {
             }
             composable("dashboard") {
                Dashboard(navController = navController)
+            }
+            composable("addcategory") {
+                AddCategoryScreen(navController = navController)
             }
         })
     }

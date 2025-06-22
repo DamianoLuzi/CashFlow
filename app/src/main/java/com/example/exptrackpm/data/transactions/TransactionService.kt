@@ -1,5 +1,4 @@
 
-import android.util.Log
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -32,7 +31,6 @@ object TransactionService {
     fun getTransactionsForCurrentUser(onData: (List<Transaction>) -> Unit) {
 
         val userId = auth.currentUser?.uid ?: return
-        Log.d("trans",userId )
 
         db.collection("transaction")
             .whereEqualTo("userId", userId)
