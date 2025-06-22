@@ -3,6 +3,7 @@ package com.example.exptrackpm.ui.screens.transactions
 import Transaction
 import TransactionType
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,10 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,6 +43,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionListScreen(
     viewModel: TransactionViewModel = viewModel(),
@@ -44,10 +53,25 @@ fun TransactionListScreen(
     val filter by viewModel.filter.collectAsState()
     Log.d("transactions", transactions.toString())
     Log.d("transactions-filter", filter.toString())
-    Column {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Overview") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+    Column(modifier = Modifier
+        .padding(padding)
+        .padding(horizontal = 16.dp)
+    )  {
         TransactionFilterBar(selectedFilter = filter, onFilterChange = viewModel::setFilter)
-        TransactionList(transactions)
-    }
+        TransactionList(transactions, navController)
+    }}
 }
 
 
@@ -76,26 +100,29 @@ fun TransactionFilterBar(
 }
 
 @Composable
-fun TransactionList(transactions: List<Transaction>) {
+fun TransactionList(transactions: List<Transaction>, navController: NavController) {
     LazyColumn(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(transactions) { txn ->
-            TransactionItem(txn)
+            TransactionItem(txn, onClick = { navController.navigate("transactionDetails/${txn.id}") })
+
         }
     }
 }
 
 @Composable
-fun TransactionItem(transaction: Transaction) {
+fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
     val isIncome = transaction.type == TransactionType.INCOME
     val formattedDate = remember(transaction.date) {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(transaction.date.toDate())
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

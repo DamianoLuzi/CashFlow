@@ -39,4 +39,13 @@ object TransactionService {
                 onData(snapshot.toObjects(Transaction::class.java))
             }
     }
+
+    fun updateTransaction(transaction: Transaction, onComplete: () -> Unit) {
+        val db = Firebase.firestore
+        db.collection("transactions")
+            .document(transaction.id!!)
+            .set(transaction)
+            .addOnSuccessListener { onComplete() }
+    }
+
 }

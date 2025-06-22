@@ -24,6 +24,7 @@ import com.example.exptrackpm.ui.screens.dashboard.Dashboard
 import com.example.exptrackpm.ui.screens.login.LoginScreen
 import com.example.exptrackpm.ui.screens.signup.SignUpScreen
 import com.example.exptrackpm.ui.screens.transactions.AddTransactionScreen
+import com.example.exptrackpm.ui.screens.transactions.TransactionDetailsScreen
 import com.example.exptrackpm.ui.screens.transactions.TransactionListScreen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
@@ -84,6 +85,11 @@ fun Navigation() {
             composable("addcategory") {
                 AddCategoryScreen(navController = navController)
             }
+            composable("transactionDetails/{transactionId}") { backStackEntry ->
+                val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
+                TransactionDetailsScreen(transactionId = transactionId, navController = navController)
+            }
+
         })
     }
 }
