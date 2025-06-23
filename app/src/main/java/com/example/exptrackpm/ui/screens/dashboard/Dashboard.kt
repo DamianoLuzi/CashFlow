@@ -165,11 +165,11 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
         .labelData { i -> "%.2f".format(i * (maxY/5f)) }
         .build()
 
-            TimeRangePicker(
-                options = dateRanges,
-                selectedOption = selectedRange,
-                onOptionSelected = { selectedRange = it }
-            )
+    TimeRangePicker(
+        options = dateRanges,
+        selectedOption = selectedRange,
+        onOptionSelected = { selectedRange = it }
+    )
 
     Scaffold(
         topBar = {

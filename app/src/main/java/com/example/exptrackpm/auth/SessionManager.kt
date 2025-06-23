@@ -3,8 +3,10 @@ package com.example.exptrackpm.auth
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.example.exptrackpm.domain.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +59,20 @@ class AuthenticationManager(private val context: Context) {
                     // Sign in success
                     Log.d("signup", "createUserWithEmail:success")
                     val user = auth.currentUser
+                    val profile = User(
+                        displayName =  user!!.displayName ?: user.email?.substringBefore("@") ?: "New User",
+                        avatarUrl = user.photoUrl?.toString(),
+                        email = user.email ?: ""
+                    )
+                    Firebase.firestore.collection("users")
+                        .document(user.uid)
+                        .set(profile)
+                        .addOnSuccessListener {
+                            trySend(AuthResponse.Success)
+                        }
+                        .addOnFailureListener {
+                            trySend(AuthResponse.Error("Failed to save profile: ${it.message}"))
+                        }
                     trySend(AuthResponse.Success)
                 } else {
                     // If sign in fails, display a message to the user.
