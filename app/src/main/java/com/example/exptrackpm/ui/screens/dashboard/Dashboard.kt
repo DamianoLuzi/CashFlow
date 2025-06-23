@@ -261,12 +261,18 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
                     }
                 }
             }
-
             Button(
                 onClick = { SessionManager.logout() },
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
             ) {
                 Text("Log Out")
+            }
+
+            Button(
+                onClick = { navController.navigate("d") },
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Text("Possibly better dashboard")
             }
         }
     }
