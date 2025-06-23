@@ -22,9 +22,13 @@ object TransactionService {
             receiptUrl = transaction.receiptUrl
         )
 
-        db.collection("transaction")
+        val collectionRef = db.collection("transaction")
+        collectionRef
             .add(txn)
-            .addOnSuccessListener { onSuccess() }
+            .addOnSuccessListener { documentRef ->
+                documentRef.update("id", documentRef.id)
+                onSuccess()
+            }
             .addOnFailureListener { onFailure(it) }
     }
 
@@ -42,10 +46,9 @@ object TransactionService {
 
     fun updateTransaction(transaction: Transaction, onComplete: () -> Unit) {
         val db = Firebase.firestore
-        db.collection("transactions")
+        db.collection("transaction")
             .document(transaction.id!!)
             .set(transaction)
             .addOnSuccessListener { onComplete() }
     }
-
 }

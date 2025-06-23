@@ -3,6 +3,7 @@ package com.example.exptrackpm.ui.screens.transactions
 import Transaction
 import TransactionService
 import TransactionType
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 
@@ -66,26 +68,30 @@ class TransactionViewModel : ViewModel() {
     fun getUserCategories(any: Any) {
 
     }
-
-    fun getTransactionById(id: String) = transactions
-        .combine(transactions) { txns, _ ->
-            txns.find { it.id == id }
-        }
-
+//
+//    fun getTransactionById(id: String) = transactions
+//        .combine(transactions) { txns, _ ->
+//            txns.find { it.id == id }
+//        }
+    fun getTransactionById(id: String) = transactions.map { txns ->
+        txns.find { it.id == id }
+    }
     fun updateTransaction(
         id: String,
         amount: Double,
         description: String,
         category: String,
-        receiptUrl: String?
+        receiptUrl: String?,
+        date: Timestamp
     ) {
         val updatedTxn = transactions.value.find { it.id == id }?.copy(
             amount = amount,
             description = description,
             category = category,
-            receiptUrl = receiptUrl
+            receiptUrl = receiptUrl,
+            date = date
         ) ?: return
-
+        Log.d("upd", updatedTxn.toString())
         TransactionService.updateTransaction(updatedTxn) {
             loadTransactions()
         }
