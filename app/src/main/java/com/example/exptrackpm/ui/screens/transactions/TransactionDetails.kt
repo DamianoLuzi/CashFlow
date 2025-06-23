@@ -1,10 +1,11 @@
 package com.example.exptrackpm.ui.screens.transactions
 
-import Transaction
+import android.app.DatePickerDialog
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,7 +42,13 @@ import coil3.compose.AsyncImage
 import com.example.exptrackpm.data.storage.SupabaseStorageService.getFileName
 import com.example.exptrackpm.data.storage.SupabaseStorageService.getPublicUrlFromSupabase
 import com.example.exptrackpm.data.storage.SupabaseStorageService.uploadFileToSupabase
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,12 +61,28 @@ fun TransactionDetailsScreen(
     val coroutineScope = rememberCoroutineScope()
     val transaction by trnViewModel.getTransactionById(transactionId)
         .collectAsStateWithLifecycle(initialValue = null)
-
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var receiptUrl by remember { mutableStateOf<String?>(null) }
+    var date by remember { mutableStateOf<Date?>(null) }
+    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val calendar = Calendar.getInstance()
 
+    date?.let {
+        calendar.time = it
+    }
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            calendar.set(year, month, day)
+            date = calendar.time
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
     var editing by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val pickImageLauncher = rememberLauncherForActivityResult(
@@ -69,11 +92,12 @@ fun TransactionDetailsScreen(
     }
 
     LaunchedEffect(transaction) {
-        transaction?.let { it: Transaction ->
+        transaction?.let { //it: Transaction ->
             amount = it.amount.toString()
             description = it.description
             category = it.category
             receiptUrl = it.receiptUrl
+            date = it.date.toDate()
         }
     }
 
@@ -126,6 +150,34 @@ fun TransactionDetailsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+
+
+//            Text("Date: ${date?.let { dateFormatter.format(it) } ?: "Not set"}")
+//            if (editing) {
+//                Button(onClick = { datePickerDialog.show() }) {
+//                    Text("Pick Date")
+//                }
+//            }
+
+            OutlinedTextField(
+                value = date?.let { dateFormatter.format(it) } ?: "Not set",
+                onValueChange = {}, // We disable manual editing
+                label = { Text("Date") },
+                readOnly = true,
+                enabled = editing,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = editing) {
+                        datePickerDialog.show()
+                    }
+            )
+            if (editing) {
+                Button(onClick = { datePickerDialog.show() }) {
+                    Text("Pick Date")
+                }
+            }
+
+
             Spacer(modifier = Modifier.padding(8.dp))
 
             Text("Receipt")
@@ -175,7 +227,8 @@ fun TransactionDetailsScreen(
                             amount = amount.toDoubleOrNull() ?: 0.0,
                             description = description,
                             category = category,
-                            receiptUrl = updatedReceiptUrl
+                            receiptUrl = updatedReceiptUrl,
+                            date = Timestamp(date ?: Date())
                         )
                         editing = false
                         Toast.makeText(context, "Transaction updated", Toast.LENGTH_SHORT).show()
@@ -187,6 +240,8 @@ fun TransactionDetailsScreen(
         }
     }
 }
+
+
 
 @Composable
 fun ReceiptUploader(

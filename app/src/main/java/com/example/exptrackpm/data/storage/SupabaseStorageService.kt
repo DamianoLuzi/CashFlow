@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import com.example.exptrackpm.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.storage.Storage
@@ -16,8 +17,8 @@ import java.util.UUID
 
 object SupabaseStorageService {
     private val client = createSupabaseClient(
-        supabaseUrl = "https://your-url.supabase.co",
-        supabaseKey = "your-key"
+        supabaseUrl = BuildConfig.SUPABASE_URL,
+        supabaseKey = BuildConfig.SUPABASE_ANON_KEY
     ) {
         install(Storage)
     }
