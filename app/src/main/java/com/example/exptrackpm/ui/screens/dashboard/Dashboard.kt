@@ -274,6 +274,31 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
             ) {
                 Text("Possibly better dashboard")
             }
+
+            BalanceLineChart(transactions = transactions, allDatesSorted = allDatesSorted, displayLabels = displayLabels)
+
+            CategorizedBarChart(
+                transactions = expenses,
+                title = "Expenses by Category",
+                barColor = Color.Red
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            // New: Income by Category Bar Chart
+            CategorizedBarChart(
+                transactions = incomes,
+                title = "Income by Category",
+                barColor = Color.Green
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            // New: Spending Distribution Pie Chart
+            SpendingPieChart(
+                transactions = expenses,
+                title = "Spending Distribution"
+            )
         }
     }
 }
