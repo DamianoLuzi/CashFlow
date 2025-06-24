@@ -41,6 +41,7 @@ fun Profile(
 
     var displayName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var id by remember { mutableStateOf("") }
     var currency by remember { mutableStateOf("") }
     var theme by remember { mutableStateOf("") }
 
@@ -50,6 +51,7 @@ fun Profile(
 
     LaunchedEffect(user) {
         user?.let {
+            id = it.id
             displayName = it.displayName ?: ""
             email = it.email
             currency = it.currency
@@ -113,6 +115,14 @@ fun Profile(
             value = email,
             onValueChange = { /* Email typically non-editable */ },
             label = { Text("Email") },
+            enabled = false,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = id ,
+            onValueChange = { /* Email typically non-editable */ },
+            label = { Text("ID") },
             enabled = false,
             modifier = Modifier.fillMaxWidth()
         )
