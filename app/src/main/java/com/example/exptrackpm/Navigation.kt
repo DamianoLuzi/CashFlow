@@ -20,15 +20,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.ui.screens.categories.AddCategoryScreen
-import com.example.exptrackpm.ui.screens.dashboard.Dashboard
-import com.example.exptrackpm.ui.screens.dashboard.Dshrbd
+import com.example.exptrackpm.ui.screens.dashboard.Overview
+import com.example.exptrackpm.ui.screens.dashboard.Pager
 import com.example.exptrackpm.ui.screens.login.LoginScreen
 import com.example.exptrackpm.ui.screens.signup.SignUpScreen
 import com.example.exptrackpm.ui.screens.transactions.AddTransactionScreen
 import com.example.exptrackpm.ui.screens.transactions.TransactionListScreen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
-    Dashboard("dashboard", "Dashboard", Icons.Default.Home),
+    Overview("overview", "Dashboard", Icons.Default.Home),
     Add("addtransaction", "Add", Icons.Default.AddCircle),
     Transactions("transactionlist", "Transactions", Icons.Default.List),
 }
@@ -39,7 +39,7 @@ fun Navigation() {
     val navController = rememberNavController()
     val isUserLoggedIn by SessionManager.isUserLoggedIn.collectAsState()
     Log.d("auth", "user is logged in: ${isUserLoggedIn}")
-    val startDestination = if (isUserLoggedIn) "dashboard" else "login"
+    val startDestination = if (isUserLoggedIn) "overview" else "login"
 
     Scaffold(
         bottomBar = {
@@ -52,7 +52,6 @@ fun Navigation() {
                         onClick = {
                             if (currentRoute != item.route) {
                                 navController.navigate(item.route) {
-                                    // Avoid building up a big backstack
                                     popUpTo(startDestination) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
@@ -79,14 +78,14 @@ fun Navigation() {
             composable("transactionlist") {
               TransactionListScreen(navController = navController)
             }
-            composable("dashboard") {
-                Dashboard(navController = navController)
-            }
-            composable("d") {
-                Dshrbd(navController = navController)
+            composable("overview") {
+                Overview(navController = navController)
             }
             composable("addcategory") {
                 AddCategoryScreen(navController = navController)
+            }
+            composable("pager") {
+                Pager(navController = navController)
             }
         })
     }

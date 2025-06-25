@@ -27,14 +27,6 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-/**
- * A Composable function that displays a line chart of the cumulative net balance over time.
- *
- * @param transactions The list of all transactions (income and expenses).
- * @param allDatesSorted A sorted list of unique dates for the X-axis.
- * @param displayLabels The formatted labels for the X-axis (e.g., "Mon", "Jan 01").
- * @param modifier Modifier for the LineChart composable.
- */
 @Composable
 fun BalanceLineChart(
     transactions: List<Transaction>,
@@ -42,18 +34,17 @@ fun BalanceLineChart(
     displayLabels: List<String>,
     modifier: Modifier = Modifier
 ) {
-    // Group transactions by day and calculate daily net change
+
     val dailyNetChange = allDatesSorted.associateWith { 0f }.toMutableMap()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     transactions.forEach { transaction ->
         val dateKey = sdf.format(transaction.date.toDate())
-        val amount = transaction.amount.toDouble().toFloat()
+        val amount = transaction.amount.toFloat()
         dailyNetChange[dateKey] = dailyNetChange.getOrDefault(dateKey, 0f) +
                 (if (transaction.type == TransactionType.INCOME) amount else -amount)
     }
 
-    // Calculate cumulative balance
     var runningBalance = 0f
     val balancePoints = allDatesSorted.mapIndexed { index, dateKey ->
         runningBalance += dailyNetChange[dateKey] ?: 0f
@@ -65,7 +56,6 @@ fun BalanceLineChart(
         return
     }
 
-    // Determine Y-axis max/min for balance
     val minY = balancePoints.minOfOrNull { it.y }?.let { if (it < 0f) it.coerceAtMost(-10f) else 0f } ?: 0f
     val maxY = balancePoints.maxOfOrNull { it.y }?.let { if (it > 0f) it.coerceAtLeast(10f) else 0f } ?: 0f
 

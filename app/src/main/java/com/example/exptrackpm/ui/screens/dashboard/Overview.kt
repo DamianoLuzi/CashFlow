@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -53,13 +53,14 @@ import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.transactions.TransactionViewModel
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Dshrbd(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
+fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     Log.d("trn", transactions.toString())
     val now = Calendar.getInstance().time
@@ -158,14 +159,22 @@ fun Dshrbd(viewModel: TransactionViewModel = viewModel(), navController: NavCont
     val maxY = listOf(
         expensePoints.maxOfOrNull { it.y } ?: 0f,
         incomePoints.maxOfOrNull { it.y } ?: 0f
-    ).maxOrNull()!!.coerceAtLeast(100f)
+    ).maxOrNull()!!
 
+    val minY = listOf(
+        expensePoints.minOfOrNull { it.y } ?: 0f,
+        incomePoints.minOfOrNull { it.y } ?: 0f
+    ).maxOrNull()!!.coerceAtMost(0f)
 
     val yAxisData = AxisData.Builder()
         .steps(5)
         .backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(20.dp)
-        .labelData { i -> "%.2f".format(i * (maxY/5f)) }
+        .labelData { i ->
+            val value = minY + (i * ((maxY - minY) / 5f))
+            val formatter = DecimalFormat("0.00")
+            "€${formatter.format(value)}"
+        }
         .build()
 
     TimeRangePicker(
@@ -179,8 +188,8 @@ fun Dshrbd(viewModel: TransactionViewModel = viewModel(), navController: NavCont
             CenterAlignedTopAppBar(
                 title = { Text("Analytics") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { navController.navigate("notifications") }) {
+                        Icon(Icons.Filled.Notifications, contentDescription = "Back")
                     }
                 }
             )
@@ -264,6 +273,13 @@ fun Dshrbd(viewModel: TransactionViewModel = viewModel(), navController: NavCont
                     }
                 }
             }
+
+            Button(
+                onClick = { navController.navigate("pager") },
+                modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
+            ) {
+                Text("Discover")
+            }
             Button(
                 onClick = { SessionManager.logout() },
                 modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
@@ -271,12 +287,7 @@ fun Dshrbd(viewModel: TransactionViewModel = viewModel(), navController: NavCont
                 Text("Log Out")
             }
 
-            Button(
-                onClick = { navController.navigate("d") },
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Text("D")
-            }
+
         }
     }
 }
@@ -285,7 +296,7 @@ fun Dshrbd(viewModel: TransactionViewModel = viewModel(), navController: NavCont
 fun RefinedDshrbPreview() {
     val navController = rememberNavController()
     ExpTrackPMTheme {
-        Dshrbd(navController = navController)
+        Overview(navController = navController)
     }
 }
 
