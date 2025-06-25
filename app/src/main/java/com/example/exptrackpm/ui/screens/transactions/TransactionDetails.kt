@@ -1,6 +1,7 @@
 package com.example.exptrackpm.ui.screens.transactions
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -16,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -193,6 +195,45 @@ fun TransactionDetailsScreen(
                 Text("No receipt uploaded")
             }
 
+            when {
+                isImageFile(receiptUrl) -> {
+                    AsyncImage(
+                        model = receiptUrl,
+                        contentDescription = "Receipt Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
+                }
+
+                isPdfFile(receiptUrl) -> {
+                    // Placeholder thumbnail for PDF
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                            .clickable {
+                                // Open the PDF in a browser or PDF viewer
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(Uri.parse(receiptUrl), "application/pdf")
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                }
+                                context.startActivity(intent)
+                            }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info, // or use a PDF-specific icon
+                            contentDescription = "PDF Receipt"
+                        )
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        Text("Open PDF Receipt")
+                    }
+                }
+
+                else -> {
+                    Text("No preview available")
+                }}
+
             if (editing) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(onClick = {
@@ -242,8 +283,21 @@ fun TransactionDetailsScreen(
 }
 
 
+    fun isImageFile(url: String?): Boolean {
+        return url?.let {
+            it.endsWith(".jpg", true) ||
+                    it.endsWith(".jpeg", true) ||
+                    it.endsWith(".png", true) ||
+                    it.endsWith(".webp", true)
+        } ?: false
+    }
+    fun isPdfFile(url: String?): Boolean {
+        return url?.endsWith(".pdf", ignoreCase = true) == true
+    }
 
-@Composable
+
+
+    @Composable
 fun ReceiptUploader(
     onUploadComplete: (String) -> Unit
 ) {

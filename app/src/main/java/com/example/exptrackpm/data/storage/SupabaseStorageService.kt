@@ -88,6 +88,22 @@ object SupabaseStorageService {
         }
     }
 
+//    suspend fun getSignedUrlFromSupabase(filePath: String): String? {
+//        return withContext(Dispatchers.IO) {
+//            try {
+//                val response = client.storage
+//                    .from("receipts")
+//                    .createSignedUrl(filePath,60.toDuration(DurationUnit.MINUTES))
+//                Log.d("SignedURL", response)
+//                response
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                null
+//            }
+//        }
+//    }
+
+
     fun getFileName(context: Context, uri: Uri): String? {
         val cursor = context.contentResolver.query(uri, null, null, null, null)
         cursor?.use {
