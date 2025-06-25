@@ -3,6 +3,7 @@ package com.example.exptrackpm
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -20,9 +21,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.ui.screens.categories.AddCategoryScreen
+<<<<<<< user-profile
+import com.example.exptrackpm.ui.screens.profile.Profile
+=======
+>>>>>>> main
 import com.example.exptrackpm.ui.screens.dashboard.Overview
 import com.example.exptrackpm.ui.screens.dashboard.Pager
 import com.example.exptrackpm.ui.screens.login.LoginScreen
+import com.example.exptrackpm.ui.screens.profile.Profile
 import com.example.exptrackpm.ui.screens.signup.SignUpScreen
 import com.example.exptrackpm.ui.screens.transactions.AddTransactionScreen
 import com.example.exptrackpm.ui.screens.transactions.TransactionDetailsScreen
@@ -32,6 +38,7 @@ enum class BottomNavItem(val route: String, val label: String, val icon: ImageVe
     Overview("overview", "Dashboard", Icons.Default.Home),
     Add("addtransaction", "Add", Icons.Default.AddCircle),
     Transactions("transactionlist", "Transactions", Icons.Default.List),
+    Profile("profile", "Account",Icons.Default.AccountCircle)
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -92,6 +99,12 @@ fun Navigation() {
                 val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
                 TransactionDetailsScreen(transactionId = transactionId, navController = navController)
             }
+<<<<<<< user-profile
+            composable("profile") {
+                Profile(navController = navController)
+            }
+=======
+>>>>>>> main
 
         })
     }
