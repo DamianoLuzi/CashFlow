@@ -13,13 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,7 +60,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
+fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     Log.d("trn", transactions.toString())
     val now = Calendar.getInstance().time
@@ -100,49 +97,65 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
     val incomeGrouped = groupByDay(incomes).toSortedMap()
     Log.d("grouped",expenseGrouped.toString())
     Log.d("grouped",incomeGrouped.toString())
-    //improv
-    val allDatesSorted = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet().toList()
+
 
     val dateFormat = when (daysBack) {
         in 1..7 -> "EEE"
         in 8..30 -> "MMM dd"
         else -> "MMM"
     }
-    val dateToIndex = allDatesSorted.withIndex().associate { it.value to it.index.toFloat() }
-    Log.d("index",dateToIndex.toString())
+    val allDatesSorted = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet().toList()
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val calendar = Calendar.getInstance()
+
+    val paddedDates = mutableListOf<String>()
+    if (allDatesSorted.isNotEmpty()) {
+        val firstDate = sdf.parse(allDatesSorted.first())!!
+        val lastDate = sdf.parse(allDatesSorted.last())!!
+
+        // Add one day before and after for padding
+        calendar.time = firstDate
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        paddedDates.add(sdf.format(calendar.time))
+
+        paddedDates.addAll(allDatesSorted)
+
+        calendar.time = lastDate
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+        paddedDates.add(sdf.format(calendar.time))
+    } else {
+        paddedDates.addAll(allDatesSorted)
+    }
+
+    val finalDates = paddedDates.toSortedSet().toList()
 
     val displayFormat = SimpleDateFormat(dateFormat, Locale.getDefault())
-
-    val allDates = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet()
-    val displayLabels = allDatesSorted.map {
-        displayFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
+    val displayLabels = finalDates.map {
+        displayFormat.format(sdf.parse(it)!!)
     }
 
-    val expensePoints = allDates.mapIndexed { index, date ->
+    val expensePoints = finalDates.mapIndexed { index, date ->
         Point(index.toFloat(), expenseGrouped[date] ?: 0f)
-        //expenseGrouped[date]?.takeIf { it > 0f }?.let { Point(index.toFloat(), it) }
     }
 
-    val incomePoints = allDates.mapIndexed { index, date ->
+    val incomePoints = finalDates.mapIndexed { index, date ->
         Point(index.toFloat(), incomeGrouped[date] ?: 0f)
     }
 
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val stepSize = if (allDatesSorted.isNotEmpty()) {
-        screenWidth / (allDatesSorted.size + 1)
+    val stepSize = if (finalDates.isNotEmpty()) {
+        screenWidth / (finalDates.size + 1)
     } else {
-        1.dp // avoid divide-by-zero if somehow empty
+        1.dp
     }
 
     val xAxisData = AxisData.Builder()
         .axisStepSize(stepSize)
         .backgroundColor(Color.Transparent)
-        //.steps(expensePoints.size - 1)
-        .steps(allDatesSorted.size - 1)
+        .steps(finalDates.size - 1)
         .labelData { i -> displayLabels.getOrElse(i) { "" } }
         .labelAndAxisLinePadding(10.dp)
         .build()
-
     val maxY = listOf(
         expensePoints.maxOfOrNull { it.y } ?: 0f,
         incomePoints.maxOfOrNull { it.y } ?: 0f
@@ -161,23 +174,22 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
             val value = minY + (i * ((maxY - minY) / 5f))
             val formatter = DecimalFormat("0.00")
             "€${formatter.format(value)}"
-            //"%.2f".format(i * ((maxY - minY)/5f))
-            }
+        }
         .build()
 
-        TimeRangePicker(
-            options = dateRanges,
-            selectedOption = selectedRange,
-            onOptionSelected = { selectedRange = it }
-        )
+    TimeRangePicker(
+        options = dateRanges,
+        selectedOption = selectedRange,
+        onOptionSelected = { selectedRange = it }
+    )
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Overview") },
+                title = { Text("Analytics") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { navController.navigate("notifications") }) {
+                        Icon(Icons.Filled.Notifications, contentDescription = "Back")
                     }
                 }
             )
@@ -261,6 +273,13 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
                     }
                 }
             }
+
+            Button(
+                onClick = { navController.navigate("pager") },
+                modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
+            ) {
+                Text("Discover")
+            }
             Button(
                 onClick = { SessionManager.logout() },
                 modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
@@ -268,75 +287,19 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
                 Text("Log Out")
             }
 
-            Button(
-                onClick = { navController.navigate("d") },
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Text("Possibly better dashboard")
-            }
 
-            Button(
-                onClick = { navController.navigate("pager") },
-                modifier = Modifier.padding(4.dp)
-            ) {
-                Text("Pager")
-            }
-
-
-//            BalanceLineChart(transactions = transactions, allDatesSorted = allDatesSorted, displayLabels = displayLabels)
-//
-//            CategorizedBarChart(
-//                transactions = expenses,
-//                title = "Expenses by Category",
-//                barColor = Color.Red
-//            )
-//
-//            Spacer(Modifier.height(24.dp))
-//
-//            // New: Income by Category Bar Chart
-//            CategorizedBarChart(
-//                transactions = incomes,
-//                title = "Income by Category",
-//                barColor = Color.Green
-//            )
-//
-//            Spacer(Modifier.height(24.dp))
-//
-//            // New: Spending Distribution Pie Chart
-//            SpendingPieChart(
-//                transactions = expenses,
-//                title = "Spending Distribution"
-//            )
-//
-//            Spacer(Modifier.height(64.dp))
         }
     }
 }
+@Preview(showBackground = true)
 @Composable
-fun Summary(label: String, amount: String, amountColor: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = label, style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(text = amount, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = amountColor)
-        }
+fun RefinedDshrbPreview() {
+    val navController = rememberNavController()
+    ExpTrackPMTheme {
+        Overview(navController = navController)
     }
 }
-@Composable
-fun TimeRangePicker(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-        options.forEach { label ->
-            FilterChip(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                selected = selectedOption == label,
-                onClick = { onOptionSelected(label) },
-                label = { Text(label) }
-            )
-        }
-    }
-}
+
+
 
 
