@@ -21,10 +21,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.ui.screens.categories.AddCategoryScreen
-<<<<<<< user-profile
-import com.example.exptrackpm.ui.screens.profile.Profile
-=======
->>>>>>> main
 import com.example.exptrackpm.ui.screens.dashboard.Overview
 import com.example.exptrackpm.ui.screens.dashboard.Pager
 import com.example.exptrackpm.ui.screens.login.LoginScreen
@@ -99,12 +95,9 @@ fun Navigation() {
                 val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
                 TransactionDetailsScreen(transactionId = transactionId, navController = navController)
             }
-<<<<<<< user-profile
             composable("profile") {
                 Profile(navController = navController)
             }
-=======
->>>>>>> main
 
         })
     }
