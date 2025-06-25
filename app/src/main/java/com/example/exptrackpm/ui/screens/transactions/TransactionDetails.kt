@@ -3,7 +3,7 @@ package com.example.exptrackpm.ui.screens.transactions
 import Transaction
 import android.app.DatePickerDialog
 import android.content.Intent
-import Transaction
+//import Transaction
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,6 +52,18 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+fun isImageFile(url: String?): Boolean {
+    return url?.let {
+        it.endsWith(".jpg", true) ||
+                it.endsWith(".jpeg", true) ||
+                it.endsWith(".png", true) ||
+                it.endsWith(".webp", true)
+    } ?: false
+}
+fun isPdfFile(url: String?): Boolean {
+    return url?.endsWith(".pdf", ignoreCase = true) == true
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +117,7 @@ fun TransactionDetailsScreen(
             receiptUrl = it.receiptUrl
             date = it.date.toDate()
         }
-    }
+    } }
 
     Scaffold(
         topBar = {
@@ -285,22 +297,6 @@ fun TransactionDetailsScreen(
         }
     }
 }
-
-
-    fun isImageFile(url: String?): Boolean {
-        return url?.let {
-            it.endsWith(".jpg", true) ||
-                    it.endsWith(".jpeg", true) ||
-                    it.endsWith(".png", true) ||
-                    it.endsWith(".webp", true)
-        } ?: false
-    }
-    fun isPdfFile(url: String?): Boolean {
-        return url?.endsWith(".pdf", ignoreCase = true) == true
-    }
-
-
-
     @Composable
 fun ReceiptUploader(
     onUploadComplete: (String) -> Unit
