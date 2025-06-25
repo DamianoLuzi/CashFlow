@@ -56,6 +56,7 @@ import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.transactions.TransactionViewModel
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -125,18 +126,8 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
     val incomePoints = allDates.mapIndexed { index, date ->
         Point(index.toFloat(), incomeGrouped[date] ?: 0f)
     }
-//    val incomePoints = incomeGrouped.mapNotNull { (date, amount) ->
-//        if (amount != 0f) dateToIndex[date]?.let { co.yml.charts.common.model.Point(it, amount.toFloat()) } else null
-//    }
-
-
-    Log.d("exppoints",expensePoints.toString())
-    Log.d("incpoints", incomePoints.toString())
-
-
 
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    //val stepSize = screenWidth / (expensePoints.size + 1)
     val stepSize = if (allDatesSorted.isNotEmpty()) {
         screenWidth / (allDatesSorted.size + 1)
     } else {
@@ -155,26 +146,35 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
     val maxY = listOf(
         expensePoints.maxOfOrNull { it.y } ?: 0f,
         incomePoints.maxOfOrNull { it.y } ?: 0f
-    ).maxOrNull()!!.coerceAtLeast(100f)
+    ).maxOrNull()!!
 
+    val minY = listOf(
+        expensePoints.minOfOrNull { it.y } ?: 0f,
+        incomePoints.minOfOrNull { it.y } ?: 0f
+    ).maxOrNull()!!.coerceAtMost(0f)
 
     val yAxisData = AxisData.Builder()
         .steps(5)
         .backgroundColor(Color.Transparent)
         .labelAndAxisLinePadding(20.dp)
-        .labelData { i -> "%.2f".format(i * (maxY/5f)) }
+        .labelData { i ->
+            val value = minY + (i * ((maxY - minY) / 5f))
+            val formatter = DecimalFormat("0.00")
+            "€${formatter.format(value)}"
+            //"%.2f".format(i * ((maxY - minY)/5f))
+            }
         .build()
 
-    TimeRangePicker(
-        options = dateRanges,
-        selectedOption = selectedRange,
-        onOptionSelected = { selectedRange = it }
-    )
+        TimeRangePicker(
+            options = dateRanges,
+            selectedOption = selectedRange,
+            onOptionSelected = { selectedRange = it }
+        )
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Analytics") },
+                title = { Text("Overview") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -275,30 +275,40 @@ fun Dashboard(viewModel: TransactionViewModel = viewModel(), navController: NavC
                 Text("Possibly better dashboard")
             }
 
-            BalanceLineChart(transactions = transactions, allDatesSorted = allDatesSorted, displayLabels = displayLabels)
+            Button(
+                onClick = { navController.navigate("pager") },
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Text("Pager")
+            }
 
-            CategorizedBarChart(
-                transactions = expenses,
-                title = "Expenses by Category",
-                barColor = Color.Red
-            )
 
-            Spacer(Modifier.height(24.dp))
-
-            // New: Income by Category Bar Chart
-            CategorizedBarChart(
-                transactions = incomes,
-                title = "Income by Category",
-                barColor = Color.Green
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // New: Spending Distribution Pie Chart
-            SpendingPieChart(
-                transactions = expenses,
-                title = "Spending Distribution"
-            )
+//            BalanceLineChart(transactions = transactions, allDatesSorted = allDatesSorted, displayLabels = displayLabels)
+//
+//            CategorizedBarChart(
+//                transactions = expenses,
+//                title = "Expenses by Category",
+//                barColor = Color.Red
+//            )
+//
+//            Spacer(Modifier.height(24.dp))
+//
+//            // New: Income by Category Bar Chart
+//            CategorizedBarChart(
+//                transactions = incomes,
+//                title = "Income by Category",
+//                barColor = Color.Green
+//            )
+//
+//            Spacer(Modifier.height(24.dp))
+//
+//            // New: Spending Distribution Pie Chart
+//            SpendingPieChart(
+//                transactions = expenses,
+//                title = "Spending Distribution"
+//            )
+//
+//            Spacer(Modifier.height(64.dp))
         }
     }
 }
@@ -329,11 +339,4 @@ fun TimeRangePicker(options: List<String>, selectedOption: String, onOptionSelec
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun RefinedDashboardPreview() {
-    val navController = rememberNavController()
-    ExpTrackPMTheme {
-        Dashboard(navController = navController)
-    }
-}
+

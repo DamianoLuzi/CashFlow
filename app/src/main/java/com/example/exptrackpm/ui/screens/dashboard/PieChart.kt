@@ -64,7 +64,7 @@ fun SpendingPieChart(
     val pieChartConfig = PieChartConfig(
         //percentVisible = true, // To show percentage labels within slices
         isAnimationEnable = true,
-        showSliceLabels = false, // Set to false as per your example (controls outer labels)
+        showSliceLabels = true, // Set to false as per your example (controls outer labels)
         animationDuration = 1500
     )
 
@@ -77,7 +77,10 @@ fun SpendingPieChart(
 
         PieChartData.Slice(
             label = category,
-            value = amount, color,
+            value = amount,
+            color = color,
+            sliceDescription = { slicePercentage ->
+                "Slice name : $category \nPercentage  : $slicePercentage %"         }
         )
     }
 
@@ -86,7 +89,7 @@ fun SpendingPieChart(
     PieChart(
         modifier = modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(600.dp),
         // Pass pieChartData and pieChartConfig separately
         pieChartData = PieChartData(
             slices = slices, // Correctly passing the List<PieChartData.Slice>
