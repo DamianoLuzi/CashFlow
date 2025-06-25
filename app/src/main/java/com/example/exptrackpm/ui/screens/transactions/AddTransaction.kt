@@ -226,6 +226,7 @@ fun AddTransactionScreen(
                                 //val filePath = uploadFileToSupabase(context, uri, fileName)
                                 val filePath = SupabaseStorageService.uploadFileToSupabase(context, uri,fileName)
                                 receiptUrl = filePath?.let { SupabaseStorageService.getPublicUrlFromSupabase(it) }
+                                //receiptUrl = filePath?.let { SupabaseStorageService.getSignedUrlFromSupabase(it) }
                             }
                             trnViewModel.addTransaction(
                                 amount = amountDouble,
