@@ -51,6 +51,21 @@ import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.categories.CategoryViewModel
 import kotlinx.coroutines.launch
 
+val defaultCategories = listOf(
+    Category(name = "Food", icon = "🍔"),
+    Category(name = "Travel", icon = "✈️"),
+    Category(name = "Salary", icon = "💰"),
+    Category(name = "Work", icon = "💼"),
+    Category(name = "Entertainment", icon = "🎬"),
+    Category(name = "Shopping", icon = "🛍️"),
+    Category(name = "Transfers", icon = "💸"),
+    Category(name = "General", icon = "🏠"),
+    Category(name = "Services", icon = "🔧"),
+    Category(name = "Groceries", icon = "🛒"),
+    Category(name = "Other", icon = "🤷"),
+    // Add more as needed
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionScreen(
@@ -70,23 +85,9 @@ fun AddTransactionScreen(
     var isSubmitting by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val customCategories by catViewModel.categories.collectAsStateWithLifecycle()
-    val categories = listOf(
-        Category(name = "Food", icon = "🍔"),
-        Category(name = "Travel", icon = "✈️"),
-        Category(name = "Salary", icon = "💰"),
-        Category(name = "Work", icon = "💼"),
-        Category(name = "Entertainment", icon = "🎬"),
-        Category(name = "Shopping", icon = "🛍️"),
-        Category(name = "Transfers", icon = "💸"),
-        Category(name = "General", icon = "🏠"),
-        Category(name = "Services", icon = "🔧"),
-        Category(name = "Groceries", icon = "🛒"),
-        Category(name = "Other", icon = "🤷"),
-        // Add more as needed
-    )
 
     val allCategories = remember(customCategories) {
-        (categories + customCategories.map { it.name })
+        (defaultCategories + customCategories.map { it.name })
             .distinct()
     }
 
@@ -94,7 +95,7 @@ fun AddTransactionScreen(
         val combinedList = mutableListOf<Category>()
 
         // Add default categories first
-        categories.forEach { defaultCat ->
+        defaultCategories.forEach { defaultCat ->
             combinedList.add(defaultCat)
         }
 

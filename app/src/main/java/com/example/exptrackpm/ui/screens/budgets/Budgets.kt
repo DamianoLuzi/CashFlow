@@ -12,9 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -28,13 +34,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.exptrackpm.domain.model.Budget
+import com.example.exptrackpm.domain.model.Category
+import com.example.exptrackpm.ui.screens.categories.CategoryViewModel
+import com.example.exptrackpm.ui.screens.transactions.defaultCategories
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun BudgetScreen(
     viewModel: BudgetViewModel = viewModel(),
+    catViewModel: CategoryViewModel = viewModel(),
     navController: NavController
 ) {
 
@@ -44,12 +56,35 @@ fun BudgetScreen(
 //        factory = BudgetViewModelFactory() // Inject UserRepository here as well
 //    )
 //) {
-    val userId = ""
+    val userId = FirebaseAuth.getInstance().currentUser!!.uid
     val budgets by viewModel.budgets.collectAsState()
     val loading by viewModel.loading.collectAsState()
-
+    val customCategories by catViewModel.categories.collectAsStateWithLifecycle()
     var category by remember { mutableStateOf("") }
     var amountText by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+
+    val allCategoriesForDisplay = remember(customCategories) {
+        val combinedList = mutableListOf<Category>()
+
+        // Add default categories first
+        defaultCategories.forEach { defaultCat ->
+            combinedList.add(defaultCat)
+        }
+
+        // Add custom categories, preferring custom ones if names overlap
+        customCategories.forEach { customCat ->
+            val existingIndex = combinedList.indexOfFirst { it.name == customCat.name }
+            if (existingIndex != -1) {
+                // If a custom category with the same name exists, replace the default one
+                combinedList[existingIndex] = customCat
+            } else {
+                // Otherwise, add the custom category
+                combinedList.add(customCat)
+            }
+        }
+        combinedList.sortedBy { it.name } // Sort by name for display
+    }
 
     LaunchedEffect(userId) {
         viewModel.loadBudgets(userId)
@@ -74,9 +109,45 @@ fun BudgetScreen(
             value = category,
             onValueChange = { category = it },
             label = { Text("Category") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown Arrow")
+                }
+            },
         )
         Spacer(modifier = Modifier.height(8.dp))
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            allCategoriesForDisplay.forEach {
+                    cat -> // Renamed `option` to `cat` for clarity
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between emoji and text
+                        ) {
+                            Text(text = cat.icon ?: "") // Display emoji
+                            Text(text = cat.name)        // Display category name
+                        }
+                    },
+                    onClick = {
+                        category = cat.name // Save only the name to the transaction
+                        expanded = false
+                    }
+                )
+            }
+            DropdownMenuItem(
+                text = { Text("➕ Add Custom Category") },
+                onClick = {
+                    expanded = false
+                    navController.navigate("addcategory")
+                }
+            )
+        }
 
         OutlinedTextField(
             value = amountText,

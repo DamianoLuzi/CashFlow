@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.auth.SessionManager
+import com.example.exptrackpm.ui.screens.budgets.BudgetScreen
 import com.example.exptrackpm.ui.screens.categories.AddCategoryScreen
 import com.example.exptrackpm.ui.screens.dashboard.Overview
 import com.example.exptrackpm.ui.screens.dashboard.Pager
@@ -97,6 +98,9 @@ fun Navigation() {
             }
             composable("profile") {
                 Profile(navController = navController)
+            }
+            composable("setbudget") {
+                BudgetScreen(navController = navController)
             }
 
         })
