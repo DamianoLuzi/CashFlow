@@ -32,7 +32,7 @@ import com.example.exptrackpm.ui.screens.transactions.TransactionDetailsScreen
 import com.example.exptrackpm.ui.screens.transactions.TransactionListScreen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
-    Overview("overview", "Dashboard", Icons.Default.Home),
+    Overview("overview", "Overview", Icons.Default.Home),
     Add("addtransaction", "Add", Icons.Default.AddCircle),
     Transactions("transactionlist", "Transactions", Icons.Default.List),
     Profile("profile", "Account",Icons.Default.AccountCircle)

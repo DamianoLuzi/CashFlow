@@ -7,9 +7,10 @@ data class User(
     val avatarUrl: String? = null, // Not directly used in this example, but good to have
     val currency: String = "EUR",
     val theme: String = "System default",
-    val notificationPreferences: Map<String, Boolean> = mapOf(
-        "overBudgetAlerts" to false,
-        "billReminders" to false,
-        "weeklySummaries" to false
-    )
+//    val notificationPreferences: Map<String, Boolean> = mapOf(
+//        "overBudgetAlerts" to false,
+//        "billReminders" to false,
+//        "weeklySummaries" to false
+//    )
+    val notificationPreferences: NotificationPreferences = NotificationPreferences()
 )

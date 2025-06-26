@@ -221,25 +221,50 @@ fun AddTransactionScreen(
                     if (amountDouble != null && description.isNotBlank() && category.isNotBlank()) {
                         isSubmitting = true
                         scope.launch {
-                            var receiptUrl: String? = null
+
+                            // Use a temporary nullable variable to hold the URL result
+                            var tempReceiptUrl: String? = null
+
                             selectedImageUri?.let { uri ->
                                 val fileName = SupabaseStorageService.getFileName(context, uri)
-                                //val filePath = uploadFileToSupabase(context, uri, fileName)
-                                val filePath = SupabaseStorageService.uploadFileToSupabase(context, uri,fileName)
-                                receiptUrl = filePath?.let { SupabaseStorageService.getPublicUrlFromSupabase(it) }
-                                //receiptUrl = filePath?.let { SupabaseStorageService.getSignedUrlFromSupabase(it) }
+                                val filePath = SupabaseStorageService.uploadFileToSupabase(context, uri, fileName)
+                                tempReceiptUrl = filePath?.let { SupabaseStorageService.getPublicUrlFromSupabase(it) }
                             }
+
+                            // Now, safely pass tempReceiptUrl to addTransaction.
+                            // The condition `?.isBlank() == true` correctly handles null or blank strings.
+                            val finalReceiptUrl = if (tempReceiptUrl?.isBlank() == true) null else tempReceiptUrl
+
                             trnViewModel.addTransaction(
                                 amount = amountDouble,
                                 description = description,
                                 category = category,
                                 type = transactionType,
-                                receiptUrl = if (receiptUrl!!.isBlank()) null else receiptUrl
+                                receiptUrl = finalReceiptUrl
                             )
                             isSubmitting = false
                             Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         }
+//                            var tmpReceiptUrl: String? = null
+//                            selectedImageUri?.let { uri ->
+//                                val fileName = SupabaseStorageService.getFileName(context, uri)
+//                                //val filePath = uploadFileToSupabase(context, uri, fileName)
+//                                val filePath = SupabaseStorageService.uploadFileToSupabase(context, uri,fileName)
+//                                receiptUrl = filePath?.let { SupabaseStorageService.getPublicUrlFromSupabase(it) }
+//                                //receiptUrl = filePath?.let { SupabaseStorageService.getSignedUrlFromSupabase(it) }
+//                            }
+//                            trnViewModel.addTransaction(
+//                                amount = amountDouble,
+//                                description = description,
+//                                category = category,
+//                                type = transactionType,
+//                                receiptUrl = if (receiptUrl!!.isBlank()) null else receiptUrl
+//                            )
+//                            isSubmitting = false
+//                            Toast.makeText(context, "Transaction added", Toast.LENGTH_SHORT).show()
+//                            navController.popBackStack()
+//                        }
                     } else {
                         Toast.makeText(context, "Please fill out all required fields", Toast.LENGTH_SHORT).show()
                     }

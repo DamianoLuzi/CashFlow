@@ -1,7 +1,5 @@
 import com.google.firebase.Timestamp
 
-enum class TransactionType { INCOME, EXPENSE }
-
 data class Transaction(
     val id: String = "",
     val userId: String = "",
@@ -12,3 +10,5 @@ data class Transaction(
     val receiptUrl: String? = null,
     val type: TransactionType = TransactionType.EXPENSE
 )
+
+enum class TransactionType { INCOME, EXPENSE }

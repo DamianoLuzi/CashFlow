@@ -98,7 +98,7 @@ fun LoginScreen(navController: NavController) {
                     .onEach { response ->
                         isLoading = false
                         when (response) {
-                            is AuthResponse.Success -> navController.navigate("dashboard") {
+                            is AuthResponse.Success -> navController.navigate("overview") {
                                 popUpTo(0) // removes everything from back stack
                                 launchSingleTop = true
                             }

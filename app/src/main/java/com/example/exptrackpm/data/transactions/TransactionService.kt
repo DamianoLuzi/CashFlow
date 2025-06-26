@@ -9,11 +9,11 @@ object TransactionService {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-    fun addTransaction(transaction: Transaction, onSuccess: () -> Unit = {}, onFailure: (Exception) -> Unit = {}) {
+    fun addTransaction(transaction: Transaction, onSuccess: (Boolean) -> Unit = {}) {
         val userId = auth.currentUser?.uid ?: return
 
         val txn = Transaction(
-            userId = userId, //Firestore autogenerates it
+            userId = userId,
             amount = transaction.amount,
             description = transaction.description,
             category = transaction.category,
@@ -27,9 +27,8 @@ object TransactionService {
             .add(txn)
             .addOnSuccessListener { documentRef ->
                 documentRef.update("id", documentRef.id)
-                onSuccess()
+                onSuccess(true)
             }
-            .addOnFailureListener { onFailure(it) }
     }
 
     fun getTransactionsForCurrentUser(onData: (List<Transaction>) -> Unit) {
@@ -44,11 +43,11 @@ object TransactionService {
             }
     }
 
-    fun updateTransaction(transaction: Transaction, onComplete: () -> Unit) {
+    fun updateTransaction(transaction: Transaction, onComplete: (Boolean) -> Unit) {
         val db = Firebase.firestore
         db.collection("transaction")
             .document(transaction.id!!)
             .set(transaction)
-            .addOnSuccessListener { onComplete() }
+            .addOnSuccessListener { onComplete(true) }
     }
 }

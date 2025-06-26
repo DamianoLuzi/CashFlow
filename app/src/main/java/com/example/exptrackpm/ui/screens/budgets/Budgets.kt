@@ -13,16 +13,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,19 +47,13 @@ import com.example.exptrackpm.ui.screens.categories.CategoryViewModel
 import com.example.exptrackpm.ui.screens.transactions.defaultCategories
 import com.google.firebase.auth.FirebaseAuth
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(
     viewModel: BudgetViewModel = viewModel(),
     catViewModel: CategoryViewModel = viewModel(),
     navController: NavController
 ) {
-
-//            (
-//    userId: String,
-//    viewModel: BudgetViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-//        factory = BudgetViewModelFactory() // Inject UserRepository here as well
-//    )
-//) {
     val userId = FirebaseAuth.getInstance().currentUser!!.uid
     val budgets by viewModel.budgets.collectAsState()
     val loading by viewModel.loading.collectAsState()
@@ -66,20 +64,14 @@ fun BudgetScreen(
 
     val allCategoriesForDisplay = remember(customCategories) {
         val combinedList = mutableListOf<Category>()
-
-        // Add default categories first
         defaultCategories.forEach { defaultCat ->
             combinedList.add(defaultCat)
         }
-
-        // Add custom categories, preferring custom ones if names overlap
         customCategories.forEach { customCat ->
             val existingIndex = combinedList.indexOfFirst { it.name == customCat.name }
             if (existingIndex != -1) {
-                // If a custom category with the same name exists, replace the default one
                 combinedList[existingIndex] = customCat
             } else {
-                // Otherwise, add the custom category
                 combinedList.add(customCat)
             }
         }
@@ -100,91 +92,104 @@ fun BudgetScreen(
         return
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-    ) {
-        // Budget input
-        OutlinedTextField(
-            value = category,
-            onValueChange = { category = it },
-            label = { Text("Category") },
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown Arrow")
+    Scaffold(
+        topBar = {
+        CenterAlignedTopAppBar(
+            title = { Text("Budgets") },
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                 }
-            },
+            }
         )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
+        }) { padding ->
+        Column(modifier = Modifier
+            .padding(padding)
+            .fillMaxSize()
+            .padding(16.dp)
         ) {
-            allCategoriesForDisplay.forEach {
-                    cat -> // Renamed `option` to `cat` for clarity
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between emoji and text
-                        ) {
-                            Text(text = cat.icon ?: "") // Display emoji
-                            Text(text = cat.name)        // Display category name
+            // Budget input
+            OutlinedTextField(
+                value = category,
+                onValueChange = { category = it },
+                label = { Text("Category") },
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown Arrow")
+                    }
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                allCategoriesForDisplay.forEach {
+                        cat -> // Renamed `option` to `cat` for clarity
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between emoji and text
+                            ) {
+                                Text(text = cat.icon ?: "") // Display emoji
+                                Text(text = cat.name)        // Display category name
+                            }
+                        },
+                        onClick = {
+                            category = cat.name // Save only the name to the transaction
+                            expanded = false
                         }
-                    },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("➕ Add Custom Category") },
                     onClick = {
-                        category = cat.name // Save only the name to the transaction
                         expanded = false
+                        navController.navigate("addcategory")
                     }
                 )
             }
-            DropdownMenuItem(
-                text = { Text("➕ Add Custom Category") },
-                onClick = {
-                    expanded = false
-                    navController.navigate("addcategory")
-                }
+
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = { amountText = it },
+                label = { Text("Amount") },
+                keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
             )
-        }
+            Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = amountText,
-            onValueChange = { amountText = it },
-            label = { Text("Amount") },
-            keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    val amount = amountText.toDoubleOrNull() ?: 0.0
+                    if (category.isNotBlank() && amount > 0) {
+                        val budget = Budget(
+                            category = category,
+                            amount = amount,
+                            userId = userId
+                        )
+                        viewModel.saveBudget(budget)
+                        category = ""
+                        amountText = ""
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Add Budget")
+            }
 
-        Button(
-            onClick = {
-                val amount = amountText.toDoubleOrNull() ?: 0.0
-                if (category.isNotBlank() && amount > 0) {
-                    val budget = Budget(
-                        category = category,
-                        amount = amount,
-                        userId = userId
-                    )
-                    viewModel.saveBudget(budget)
-                    category = ""
-                    amountText = ""
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Your Budgets", style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyColumn {
+                items(budgets) { budget ->
+                    BudgetItem(budget)
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Add Budget")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text("Your Budgets", style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn {
-            items(budgets) { budget ->
-                BudgetItem(budget)
             }
         }
     }
@@ -202,7 +207,8 @@ fun BudgetItem(budget: Budget) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(budget.category)
-            Text("${budget.amount} ${budget.currency}")
+            Text("${budget.amount}")
+            Text("${budget.currency}")
         }
     }
 }

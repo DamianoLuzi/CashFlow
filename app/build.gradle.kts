@@ -80,7 +80,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.navigation.compose)
-    //implementation(libs.androidx.lifecycle.extensions)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,7 +87,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel")
     implementation("androidx.room:room-runtime:2.5.2")
     implementation("androidx.room:room-ktx:2.5.2")
     //kapt("androidx.room:room-compiler:2.5.2")
@@ -112,5 +113,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.3")
     // Coil for image loading
     implementation("io.coil-kt.coil3:coil-compose:3.2.0")
+    implementation ("androidx.work:work-runtime-ktx:2.10.2")
 
 }

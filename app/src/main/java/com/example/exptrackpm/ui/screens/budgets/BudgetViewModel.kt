@@ -9,9 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 class BudgetViewModel: ViewModel() {
 
-//    (
-//}private val userRepository: UserRepository) : ViewModel() {
-
     private val _budgets = MutableStateFlow<List<Budget>>(emptyList())
     val budgets: StateFlow<List<Budget>> = _budgets
 
@@ -31,10 +28,8 @@ class BudgetViewModel: ViewModel() {
         UserRepository.saveBudget(budget) { success ->
             _loading.value = false
             if (success) {
-                // Refresh budgets list
                 loadBudgets(budget.userId)
             }
-            // else handle failure
         }
     }
 }
