@@ -178,6 +178,7 @@ import TransactionService
 import TransactionType
 import android.app.Application
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.exptrackpm.data.users.UserRepository
@@ -198,46 +199,45 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 
-// CRITICAL: Extend AndroidViewModel and accept Application in constructor
 class TransactionViewModel(application: Application) : AndroidViewModel(application) {
-    private val auth = Firebase.auth // Instance of Firebase Auth
+    private val auth = Firebase.auth
     private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
     private val _userNotificationPreferences = MutableStateFlow(NotificationPreferences())
     private val _budgets = MutableStateFlow<List<Budget>>(emptyList())
-    val transactions = _transactions.asStateFlow() // Publicly exposed transactions
+    val transactions = _transactions.asStateFlow()
 
-    private val _filter = MutableStateFlow<TransactionType?>(null) // Filter state for transactions
+    private val _filter = MutableStateFlow<TransactionType?>(null)
     val filter = _filter.asStateFlow()
 
-    // Combined flow for filtered transactions, reacting to changes in _transactions or _filter
     val filteredTransactions = combine(_transactions, _filter) { all, type ->
         type?.let { all.filter { it.type == type } } ?: all
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    // Initialize data loading when the ViewModel is created
     init {
-        // CRITICAL FIX: Ensure user ID is available and valid before attempting to load data
         FirebaseAuth.getInstance().currentUser?.uid?.let { userId ->
             loadTransactions() // Pass userId to loadTransactions
             loadBudgets(userId) // Load budgets for the user
             loadUserNotificationPreferences(userId) // Load user preferences
         } ?: run {
-            // Log if no user is authenticated on ViewModel init
             Log.e("TransactionViewModel", "No authenticated user on ViewModel init. Data will not be loaded.")
-            // You might want to navigate to a login screen or show an error here
         }
     }
 
     // Load user notification preferences from UserRepository
     private fun loadUserNotificationPreferences(userId: String) {
-        UserRepository.getUser { user ->
+//        UserRepository.getUser { user ->
+//            user?.notificationPreferences?.let { preferences ->
+//                _userNotificationPreferences.value = preferences
+//            } ?: Log.w("TransactionViewModel", "User or notification preferences not found for $userId.")
+//        }
+        UserRepository.getUser(userId) { user ->
             user?.notificationPreferences?.let { preferences ->
                 _userNotificationPreferences.value = preferences
+                Log.d("TransactionViewModel", "Loaded preferences: $preferences")
             } ?: Log.w("TransactionViewModel", "User or notification preferences not found for $userId.")
         }
     }
 
-    // Loads transactions for a specific user ID
     fun loadTransactions() {
         TransactionService.getTransactionsForCurrentUser() { transactionsList ->
             _transactions.value = transactionsList
@@ -291,6 +291,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 }
                 viewModelScope.launch {
                     // Check for over-budget alert only if transaction is an expense and preferences allow
+                    Log.d("checkOverBudget"," ${txn} ${_userNotificationPreferences.value.overBudgetAlerts}")
                     if (txn.type == TransactionType.EXPENSE && _userNotificationPreferences.value.overBudgetAlerts) {
                         checkForOverBudget(txn.userId, txn.category, txn.amount)
                     }
@@ -358,7 +359,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
 
         if (!userPreferences.overBudgetAlerts) {
             Log.d("TransactionViewModel", "Over budget alerts are disabled by user preferences.")
-            return // User doesn't want over budget alerts
+            return
         }
 
         val budgetForCategory = budgets.find { it.category == category && it.userId == userId }
@@ -375,10 +376,11 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 .sumOf { it.amount }
 
             Log.d("TransactionViewModel", "Checking budget for category '$category'. Budget: €${budgetForCategory.amount}, Current expenses: €$currentPeriodExpensesForCategory")
-
             if (currentPeriodExpensesForCategory > budgetForCategory.amount) {
                 val amountOver = currentPeriodExpensesForCategory - budgetForCategory.amount
                 Log.d("TransactionViewModel", "Over budget for '$category' by €$amountOver. Triggering notification.")
+                Toast.makeText(getApplication(), "Over budget in $category by €$amountOver", Toast.LENGTH_LONG).show()
+
                 NotificationHelper.showOverBudgetNotification( // Using full path to avoid import conflict if any
                     getApplication(), // Access application context from AndroidViewModel
                     category,

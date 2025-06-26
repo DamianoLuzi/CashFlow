@@ -1,4 +1,5 @@
 
+import android.util.Log
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -49,5 +50,38 @@ object TransactionService {
             .document(transaction.id!!)
             .set(transaction)
             .addOnSuccessListener { onComplete(true) }
+    }
+
+    fun getTransactionsByDateRange(
+        userId: String,
+        startDate: Timestamp,
+        endDate: Timestamp,
+        onData: (List<Transaction>) -> Unit
+    ) {
+        if (userId.isBlank()) {
+            Log.w("TransactionService", "getTransactionsByDateRange: Provided userId is blank. Returning empty list.")
+            onData(emptyList())
+            return
+        }
+        if (startDate.seconds > endDate.seconds) {
+            Log.e("TransactionService", "getTransactionsByDateRange: Start date is after end date. Returning empty list.")
+            onData(emptyList())
+            return
+        }
+
+        db.collection("transaction")
+            .whereEqualTo("userId", userId)
+            .whereGreaterThanOrEqualTo("date", startDate)
+            .whereLessThanOrEqualTo("date", endDate)
+            .get() // Using get() for a one-time fetch, not addSnapshotListener for a worker
+            .addOnSuccessListener { querySnapshot ->
+                val transactions = querySnapshot.toObjects(Transaction::class.java)
+                Log.d("TransactionService", "Fetched ${transactions.size} transactions for user $userId between $startDate and $endDate.")
+                onData(transactions)
+            }
+            .addOnFailureListener { e ->
+                Log.e("TransactionService", "Error fetching transactions by date range for user $userId: ${e.message}", e)
+                onData(emptyList())
+            }
     }
 }

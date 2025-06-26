@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.example.exptrackpm.auth.SessionManager
 
 @Composable
 fun Profile(
@@ -157,5 +158,21 @@ fun Profile(
         ) {
             Text("Save Profile")
         }
+        Button(
+                onClick = { navController.navigate("setbudget") },
+                modifier = Modifier.padding(40.dp)
+            ) {
+                Text("Manage budgets")
+            }
+        }
+
+        Button(
+            onClick = { SessionManager.logout() },
+            modifier = Modifier.padding(4.dp)
+        ) {
+            Text("Log Out")
+        }
+
+
     }
-}
+

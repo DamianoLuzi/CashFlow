@@ -1,17 +1,21 @@
 package com.example.exptrackpm.ui.screens.notifications
 
 import Transaction
+import TransactionService
 import TransactionType
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.exptrackpm.data.users.UserRepository
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.datetime.DayOfWeek
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.temporal.WeekFields
+import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import kotlin.coroutines.resume
 
@@ -27,7 +31,7 @@ class WeeklySummaryWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Fetch user's notification preferences
         val userPreferences = suspendCancellableCoroutine<com.example.exptrackpm.domain.model.NotificationPreferences?> { continuation ->
-            UserRepository.getUser { user ->
+            UserRepository.getUser(userId) { user ->
                 continuation.resume(user?.notificationPreferences)
             }
         }
@@ -37,22 +41,23 @@ class WeeklySummaryWorker(appContext: Context, workerParams: WorkerParameters) :
             return Result.success()
         }
 
-        // Define the current week (example: Monday to Sunday)
+        // Define the date range for the *last full week*
         val now = LocalDate.now(ZoneId.systemDefault())
-        val weekFields = WeekFields.of(Locale.getDefault())
-        val startOfWeek = now.with(weekFields.dayOfWeek(), 1L) // Monday
-        val endOfWeek = startOfWeek.plusDays(6) // Sunday
+        // Adjust to the start of the current week (e.g., Monday)
+        val endOfLastWeek = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY)) // Assuming week ends on Sunday
+        val startOfLastWeek = endOfLastWeek.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-        // Fetch transactions for the last week (requires a TransactionRepository with date filtering)
-        // This is a placeholder. You need to implement actual data fetching from your TransactionRepository
+        // Convert LocalDate to Timestamp
+        val startDateTimestamp = Timestamp(startOfLastWeek.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() / 1000, 0)
+        val endDateTimestamp = Timestamp(endOfLastWeek.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 1000, 0)
+
+        Log.d("WeeklySummaryWorker", "Fetching transactions for last week: $startOfLastWeek to $endOfLastWeek")
+
+        // Fetch transactions for the last week using the new TransactionService method
         val weeklyTransactions = suspendCancellableCoroutine<List<Transaction>> { continuation ->
-            // Replace with your actual TransactionRepository.getTransactionsByDateRange
-            // For now, returning empty list or dummy data
-            // Example:
-            // TransactionRepository.getTransactionsByDateRange(userId, startOfWeek.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(), endOfWeek.atEndOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()) { transactions ->
-            //     continuation.resume(transactions)
-            // }
-            continuation.resume(emptyList()) // Placeholder: Replace with actual transaction data
+            TransactionService.getTransactionsByDateRange(userId, startDateTimestamp, endDateTimestamp) { transactions ->
+                continuation.resume(transactions)
+            }
         }
 
         val totalIncome = weeklyTransactions
@@ -67,7 +72,7 @@ class WeeklySummaryWorker(appContext: Context, workerParams: WorkerParameters) :
 
         val formatter = DecimalFormat("0.00")
         val summaryText = """
-                Weekly Summary (${startOfWeek} to ${endOfWeek}):
+                Weekly Summary (${startOfLastWeek.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())} ${startOfLastWeek.dayOfMonth} - ${endOfLastWeek.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())} ${endOfLastWeek.dayOfMonth}):
                 Total Income: €${formatter.format(totalIncome)}
                 Total Expenses: €${formatter.format(totalExpenses)}
                 Net Balance: €${formatter.format(netBalance)}

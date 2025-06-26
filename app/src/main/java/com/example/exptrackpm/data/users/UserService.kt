@@ -2,6 +2,7 @@ package com.example.exptrackpm.data.users
 
 import android.util.Log
 import com.example.exptrackpm.domain.model.Budget
+import com.example.exptrackpm.domain.model.NotificationPreferences
 import com.example.exptrackpm.domain.model.User
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -11,17 +12,32 @@ object UserRepository {
     private val firestore = Firebase.firestore
     private val auth = Firebase.auth
 
-    fun getUser(onResult: (User?) -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
-        firestore.collection("users").document(userId).get()
-            .addOnSuccessListener { doc ->
-                val user = doc.toObject(User::class.java)?.copy(id = doc.id)
-                onResult(user)
-            }
-            .addOnFailureListener {
-                onResult(null)
-            }
-    }
+//    fun getUser(onResult: (User?) -> Unit) {
+//        val userId = auth.currentUser?.uid ?: return
+//        firestore.collection("users").document(userId).get()
+//            .addOnSuccessListener { doc ->
+//                val user = doc.toObject(User::class.java)?.copy(id = doc.id)
+//                onResult(user)
+//            }
+//            .addOnFailureListener {
+//                onResult(null)
+//            }
+//    }
+fun getUser(userId: String, onResult: (User?) -> Unit) {
+    firestore.collection("users").document(userId).get()
+        .addOnSuccessListener { doc ->
+            val user = doc.toObject(User::class.java)?.copy(id = doc.id)
+            //onResult(user)
+            val fixedUser = user?.copy(
+                notificationPreferences = user.notificationPreferences ?: NotificationPreferences()
+            )
+
+            onResult(fixedUser)
+        }
+        .addOnFailureListener {
+            onResult(null)
+        }
+}
 
     fun updateUser(user: User, onComplete: (Boolean) -> Unit) {
 
