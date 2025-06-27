@@ -28,7 +28,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadUser() {
         _loading.value = true
-        UserRepository.getUser(userId!!) { fetchedUser ->
+        UserRepository.getUser(
+            //userId!!
+            ) { fetchedUser ->
             _user.value = fetchedUser
             _loading.value = false
             // Schedule or cancel worker based on fetched user preferences
@@ -94,36 +96,3 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
 }
-
-
-
-
-
-
-//class ProfileViewModel(private val userRepository: UserRepository) : ViewModel() {
-//
-//    private val _user = MutableStateFlow<User?>(null)
-//    val user: StateFlow<User?> = _user
-//
-//    private val _loading = MutableStateFlow(false)
-//    val loading: StateFlow<Boolean> = _loading
-//
-//    fun loadUser(userId: String) {
-//        _loading.value = true
-//        userRepository.getUser(userId) { fetchedUser ->
-//            _user.value = fetchedUser
-//            _loading.value = false
-//        }
-//    }
-//
-//    fun updateUser(updatedUser: User) {
-//        _loading.value = true
-//        userRepository.updateUser(updatedUser) { success ->
-//            _loading.value = false
-//            if (success) {
-//                _user.value = updatedUser
-//            }
-//            // else handle failure (show error etc)
-//        }
-//    }
-//}

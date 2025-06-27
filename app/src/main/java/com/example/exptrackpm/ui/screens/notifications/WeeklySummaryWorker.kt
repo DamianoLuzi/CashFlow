@@ -31,7 +31,9 @@ class WeeklySummaryWorker(appContext: Context, workerParams: WorkerParameters) :
 
         // Fetch user's notification preferences
         val userPreferences = suspendCancellableCoroutine<com.example.exptrackpm.domain.model.NotificationPreferences?> { continuation ->
-            UserRepository.getUser(userId) { user ->
+            UserRepository.getUser(
+                //userId
+                ) { user ->
                 continuation.resume(user?.notificationPreferences)
             }
         }

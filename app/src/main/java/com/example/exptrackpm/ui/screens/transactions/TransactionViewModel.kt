@@ -230,7 +230,8 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
 //                _userNotificationPreferences.value = preferences
 //            } ?: Log.w("TransactionViewModel", "User or notification preferences not found for $userId.")
 //        }
-        UserRepository.getUser(userId) { user ->
+        UserRepository.getUser(//userId
+             ) { user ->
             user?.notificationPreferences?.let { preferences ->
                 _userNotificationPreferences.value = preferences
                 Log.d("TransactionViewModel", "Loaded preferences: $preferences")
@@ -247,7 +248,9 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
 
     // Loads budgets for a specific user ID
     private fun loadBudgets(userId: String) {
-        UserRepository.getBudgets(userId) { loadedBudgets ->
+        UserRepository.getBudgets(
+            //userId
+            ) { loadedBudgets ->
             _budgets.value = loadedBudgets
             Log.d("TransactionViewModel", "Budgets loaded: ${loadedBudgets.size}")
         }

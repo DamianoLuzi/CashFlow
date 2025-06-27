@@ -17,7 +17,9 @@ class BudgetViewModel: ViewModel() {
 
     fun loadBudgets(userId: String) {
         _loading.value = true
-        UserRepository.getBudgets(userId) { list ->
+        UserRepository.getBudgets(
+            //userId
+            ) { list ->
             _budgets.value = list
             _loading.value = false
         }

@@ -11,19 +11,12 @@ import com.google.firebase.firestore.firestore
 object UserRepository {
     private val firestore = Firebase.firestore
     private val auth = Firebase.auth
-
-//    fun getUser(onResult: (User?) -> Unit) {
-//        val userId = auth.currentUser?.uid ?: return
-//        firestore.collection("users").document(userId).get()
-//            .addOnSuccessListener { doc ->
-//                val user = doc.toObject(User::class.java)?.copy(id = doc.id)
-//                onResult(user)
-//            }
-//            .addOnFailureListener {
-//                onResult(null)
-//            }
-//    }
-fun getUser(userId: String, onResult: (User?) -> Unit) {
+    private val userId = auth.currentUser!!.uid
+fun getUser(
+    //userId: String,
+    onResult: (User?) -> Unit) {
+    Log.d("urauth"," auth.uid: ${auth.uid!!} \n auth.currentUser.uid ${auth.currentUser!!.uid} \n userId ${userId}")
+    //firestore.collection("users").document(userId).get()
     firestore.collection("users").document(userId).get()
         .addOnSuccessListener { doc ->
             val user = doc.toObject(User::class.java)?.copy(id = doc.id)
@@ -48,7 +41,7 @@ fun getUser(userId: String, onResult: (User?) -> Unit) {
         }
 
         val currentAuthUid = auth.currentUser?.uid
-        if (currentAuthUid.isNullOrBlank() || currentAuthUid != user.id) {
+        if (currentAuthUid.isNullOrBlank() || currentAuthUid != user.id || userId != user.id) {
             // This is a safety check. If the user object's ID doesn't match the currently authenticated UID,
             // it indicates a potential logic error or security concern.
             Log.e("UserRepository", "updateUser: Mismatch between authenticated UID ($currentAuthUid) and user object ID (${user.id}). Aborting update.")
@@ -61,7 +54,9 @@ fun getUser(userId: String, onResult: (User?) -> Unit) {
             .addOnFailureListener { onComplete(false) }
     }
 
-    fun getBudgets(userId: String, onResult: (List<Budget>) -> Unit) {
+    fun getBudgets(
+        //userId: String,
+        onResult: (List<Budget>) -> Unit) {
         firestore.collection("budgets")
             .whereEqualTo("userId", userId) // Filter budgets by the user ID
             .get()

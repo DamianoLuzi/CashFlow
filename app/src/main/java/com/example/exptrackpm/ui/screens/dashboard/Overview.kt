@@ -188,7 +188,7 @@ fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavCo
             CenterAlignedTopAppBar(
                 title = { Text("Analytics") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate("notifications") }) {
+                    IconButton(onClick = { navController.navigate("profile") }) {
                         Icon(Icons.Filled.Notifications, contentDescription = "Back")
                     }
                 }

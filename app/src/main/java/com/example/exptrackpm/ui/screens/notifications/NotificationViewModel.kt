@@ -27,7 +27,9 @@ class NotificationSchedulerViewModel(private val applicationContext: Context) : 
             return
         }
 
-        UserRepository.getUser(userId){ user ->
+        UserRepository.getUser(
+            //userId
+            ){ user ->
             user?.notificationPreferences?.let { preferences ->
                 if (preferences != _userPreferences.value) { // Only update if changed
                     _userPreferences.value = preferences
