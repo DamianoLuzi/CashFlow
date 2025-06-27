@@ -2,6 +2,7 @@ package com.example.exptrackpm.ui.screens.profile
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,11 +18,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,10 +56,12 @@ import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.domain.model.NotificationPreferences
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 
+val currencyOptions = listOf("EUR", "USD", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY", "INR", "BRL")
+val themeOptions = listOf("System default", "Light", "Dark")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Profile(
-    //userId: String,
     viewModel: ProfileViewModel = viewModel(),
     navController: NavController
 ) {
@@ -63,20 +69,15 @@ fun Profile(
     Log.d("uid","profile")
     Log.d("uid",user.toString())
     val loading by viewModel.loading.collectAsState()
-
-//    var displayName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var id by remember { mutableStateOf("") }
-//    var currency by remember { mutableStateOf("") }
-//    var theme by remember { mutableStateOf("") }
-
+    var currencyExpanded by remember { mutableStateOf(false) }
+    var themeExpanded by remember { mutableStateOf(false) }
     var displayName by remember(user) { mutableStateOf(user?.displayName ?: "") }
     var currency by remember(user) { mutableStateOf(user?.currency ?: "EUR") }
     var theme by remember(user) { mutableStateOf(user?.theme ?: "System default") }
     var overBudgetAlerts by remember(user) { mutableStateOf(user?.notificationPreferences?.overBudgetAlerts ?: false) }
     var weeklySummaries by remember(user) { mutableStateOf(user?.notificationPreferences?.weeklySummaries ?: false) }
-
-    // Derived state to check if any modifications have been made
     val hasModifications by remember(user, displayName, currency, theme, overBudgetAlerts, weeklySummaries) {
         derivedStateOf {
             user?.let { originalUser ->
@@ -120,7 +121,6 @@ fun Profile(
                     }
                 },
                 actions = {
-                    // Log out button in top app bar for easy access, alternatively in bottom bar
                     IconButton(onClick = { SessionManager.logout() }) {
                         Icon(Icons.Filled.ExitToApp, contentDescription = "Logout")
                     }
@@ -131,7 +131,6 @@ fun Profile(
                 )
             )
         },
-        // Sticky bottom bar for Save and Log Out buttons
         bottomBar = {
             Column(
                 modifier = Modifier
@@ -156,13 +155,11 @@ fun Profile(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = hasModifications // Enable only if changes are detected
+                    enabled = hasModifications
                 ) {
                     Text("Save Changes")
                 }
                 Spacer(Modifier.height(8.dp))
-                // You can keep a Log Out button here or move it to topBar.
-                // For a more dedicated profile screen, having it here is common.
                 Button(
                     onClick = { SessionManager.logout() },
                     modifier = Modifier.fillMaxWidth(),
@@ -190,7 +187,6 @@ fun Profile(
                 contentAlignment = Alignment.Center
             ) {
                 Text("User not loaded or not logged in.")
-                // Potentially add a button to retry or navigate to login
             }
         } else {
             Column(
@@ -203,29 +199,28 @@ fun Profile(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 user?.avatarUrl?.let { url ->
-            Image(
-                painter = rememberAsyncImagePainter(url),
-                contentDescription = "Avatar",
-                modifier = Modifier
-                    .size(100.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+                    Image(
+                        painter = rememberAsyncImagePainter(url),
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 Spacer(modifier = Modifier.height(16.dp))
-                // Email (read-only, usually from Firebase Auth)
                 OutlinedTextField(
                     value = user!!.email,
                     onValueChange = { /* Email is read-only */ },
                     label = { Text("Email") },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = false // Visually indicate it's not editable
+                    enabled = false
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = id ,
-                    onValueChange = { /* Email typically non-editable */ },
+                    onValueChange = {  },
                     label = { Text("ID") },
                     enabled = false,
                     modifier = Modifier.fillMaxWidth()
@@ -234,7 +229,6 @@ fun Profile(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-                // Display Name
                 OutlinedTextField(
                     value = displayName,
                     onValueChange = { displayName = it },
@@ -243,26 +237,74 @@ fun Profile(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Currency (e.g., as a dropdown or selection)
-                // For simplicity, using a text field here. You'd likely use a DropdownMenu
-                OutlinedTextField(
-                    value = currency,
-                    onValueChange = { currency = it },
-                    label = { Text("Currency") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                // Currency Dropdown
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = currency,
+                        onValueChange = { /* Read-only for direct input */ },
+                        label = { Text("Currency") },
+                        readOnly = true, // Make it read-only
+                        trailingIcon = {
+                            IconButton(onClick = { currencyExpanded = !currencyExpanded }) {
+                                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Select Currency")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { currencyExpanded = true } // Make the whole field clickable
+                    )
+                    DropdownMenu(
+                        expanded = currencyExpanded,
+                        onDismissRequest = { currencyExpanded = false },
+                        modifier = Modifier.fillMaxWidth() // Adjust width to match TextField
+                    ) {
+                        currencyOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    currency = option
+                                    currencyExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Theme (e.g., as a dropdown or selection)
-                OutlinedTextField(
-                    value = theme,
-                    onValueChange = { theme = it },
-                    label = { Text("Theme") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Notification Preferences Section
+                // Theme Dropdown
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = theme,
+                        onValueChange = { /* Read-only for direct input */ },
+                        label = { Text("Theme") },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = { themeExpanded = !themeExpanded }) {
+                                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Select Theme")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { themeExpanded = true }
+                    )
+                    DropdownMenu(
+                        expanded = themeExpanded,
+                        onDismissRequest = { themeExpanded = false },
+                        modifier = Modifier.fillMaxWidth() // Adjust width to match TextField
+                    ) {
+                        themeOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    theme = option
+                                    themeExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 Text("Notification Preferences", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -279,7 +321,7 @@ fun Profile(
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { navController.navigate("setbudget") },
-                    modifier = Modifier.padding(40.dp)
+                    modifier = Modifier.padding(40.dp).fillMaxWidth()
                 ) {
                     Text("Manage budgets")
                 }
@@ -322,123 +364,3 @@ fun ProfileScreenPreview() {
         Profile(navController = navController)
     }
 }
-
-//    LaunchedEffect(Unit) {
-//        viewModel.loadUser()
-//    }
-//
-//    LaunchedEffect(user) {
-//        user?.let {
-//            id = it.id
-//            displayName = it.displayName ?: ""
-//            email = it.email
-//            currency = it.currency
-//            theme = it.theme
-//        }
-//    }
-//
-//    if (loading) {
-//        Box(
-//            modifier = Modifier.fillMaxSize(),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            CircularProgressIndicator()
-//        }
-//        return
-//    }
-//
-//    if (user == null || loading) {
-//        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//            CircularProgressIndicator()
-//        }
-//        return
-//    }
-//
-//
-//    Column(modifier = Modifier
-//        .fillMaxSize()
-//        .padding(16.dp)
-//    ) {
-//        user?.avatarUrl?.let { url ->
-//            Image(
-//                painter = rememberAsyncImagePainter(url),
-//                contentDescription = "Avatar",
-//                modifier = Modifier
-//                    .size(100.dp)
-//                    .align(Alignment.CenterHorizontally)
-//            )
-//            Spacer(modifier = Modifier.height(16.dp))
-//        }
-//
-//        OutlinedTextField(
-//            value = displayName,
-//            onValueChange = { displayName = it },
-//            label = { Text("Display Name") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        OutlinedTextField(
-//            value = email,
-//            onValueChange = { /* Email typically non-editable */ },
-//            label = { Text("Email") },
-//            enabled = false,
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//
-//        OutlinedTextField(
-//            value = id ,
-//            onValueChange = { /* Email typically non-editable */ },
-//            label = { Text("ID") },
-//            enabled = false,
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        OutlinedTextField(
-//            value = currency,
-//            onValueChange = { currency = it },
-//            label = { Text("Currency") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        OutlinedTextField(
-//            value = theme,
-//            onValueChange = { theme = it },
-//            label = { Text("Theme") },
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        Button(
-//            onClick = {
-//                val updatedUser = user?.copy(
-//                    displayName = displayName,
-//                    currency = currency,
-//                    theme = theme
-//                )
-//                updatedUser?.let { viewModel.updateUser(it) }
-//            },
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            Text("Save Profile")
-//        }
-//        Button(
-//                onClick = { navController.navigate("setbudget") },
-//                modifier = Modifier.padding(40.dp)
-//            ) {
-//                Text("Manage budgets")
-//            }
-//        }
-//
-//        Button(
-//            onClick = { SessionManager.logout() },
-//            modifier = Modifier.padding(4.dp)
-//        ) {
-//            Text("Log Out")
-//        }
-//
-//
-//    }
-

@@ -11,13 +11,12 @@ import com.google.firebase.firestore.firestore
 object UserRepository {
     private val firestore = Firebase.firestore
     private val auth = Firebase.auth
-    private val userId = auth.currentUser!!.uid
 fun getUser(
     //userId: String,
     onResult: (User?) -> Unit) {
-    Log.d("urauth"," auth.uid: ${auth.uid!!} \n auth.currentUser.uid ${auth.currentUser!!.uid} \n userId ${userId}")
+    Log.d("urauth"," auth.uid: ${auth.uid!!} \n auth.currentUser.uid ${auth.currentUser!!.uid}")
     //firestore.collection("users").document(userId).get()
-    firestore.collection("users").document(userId).get()
+    firestore.collection("users").document(auth.currentUser!!.uid).get()
         .addOnSuccessListener { doc ->
             val user = doc.toObject(User::class.java)?.copy(id = doc.id)
             //onResult(user)
@@ -41,7 +40,7 @@ fun getUser(
         }
 
         val currentAuthUid = auth.currentUser?.uid
-        if (currentAuthUid.isNullOrBlank() || currentAuthUid != user.id || userId != user.id) {
+        if (currentAuthUid.isNullOrBlank() || currentAuthUid != user.id) {
             // This is a safety check. If the user object's ID doesn't match the currently authenticated UID,
             // it indicates a potential logic error or security concern.
             Log.e("UserRepository", "updateUser: Mismatch between authenticated UID ($currentAuthUid) and user object ID (${user.id}). Aborting update.")
@@ -58,18 +57,18 @@ fun getUser(
         //userId: String,
         onResult: (List<Budget>) -> Unit) {
         firestore.collection("budgets")
-            .whereEqualTo("userId", userId) // Filter budgets by the user ID
+            .whereEqualTo("userId", auth.currentUser!!.uid) // Filter budgets by the user ID
             .get()
             .addOnSuccessListener { query ->
                 val budgets = query.documents.mapNotNull { doc ->
                     // Still ensure 'id' is set from document ID, 'userId' should already be in the Budget object
                     doc.toObject(Budget::class.java)?.copy(id = doc.id)
                 }
-                Log.d("UserRepository", "Fetched ${budgets.size} budgets for user $userId.")
+                Log.d("UserRepository", "Fetched ${budgets.size} budgets for user ${auth.currentUser!!.uid}.")
                 onResult(budgets)
             }
             .addOnFailureListener { e ->
-                Log.e("UserRepository", "getBudgets: Error fetching budgets for user $userId", e)
+                Log.e("UserRepository", "getBudgets: Error fetching budgets for user ${auth.currentUser!!.uid}", e)
                 onResult(emptyList())
             }
     }

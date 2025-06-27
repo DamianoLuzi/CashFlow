@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -168,23 +167,11 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
                     text = { Text("Income") }
                 )
             }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("setbudget") },
-                modifier = Modifier.padding(40.dp)
-            ) {
-                Text("Set Up a budget")
-            }
         }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
 
-            // Time Range Picker remains at the top, outside of tabs
             TimeRangePicker(options = dateRanges, selectedOption = selectedRange, onOptionSelected = { selectedRange = it })
-
             Spacer(Modifier.height(16.dp))
-
-            // Tabs
             TabRow(selectedTabIndex = pagerState.currentPage) {
                 Tab(
                     selected = pagerState.currentPage == 0,

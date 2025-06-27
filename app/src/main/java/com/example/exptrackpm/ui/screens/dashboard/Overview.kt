@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,7 +51,6 @@ import co.yml.charts.ui.linechart.model.LineStyle
 import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
 import co.yml.charts.ui.linechart.model.ShadowUnderLine
-import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.theme.ExpTrackPMTheme
 import com.example.exptrackpm.ui.screens.transactions.TransactionViewModel
 import java.text.DecimalFormat
@@ -276,18 +276,16 @@ fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavCo
 
             Button(
                 onClick = { navController.navigate("pager") },
-                modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .padding(4.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
             ) {
-                Text("Discover")
+                Row {
+                    Text("Review your finances")
+                    Icon(Icons.Filled.ArrowForward, contentDescription = "Plots")
+                }
             }
-            Button(
-                onClick = { SessionManager.logout() },
-                modifier = Modifier.padding(4.dp).align(Alignment.CenterHorizontally)
-            ) {
-                Text("Log Out")
-            }
-
-
         }
     }
 }

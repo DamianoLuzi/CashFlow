@@ -1,4 +1,5 @@
 /build
 .idea/
 /.idea/
+.idea/deploymentTargetSelector.xml
 google-services.json

@@ -39,7 +39,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.exptrackpm.theme.ExpTrackPMTheme
+import com.example.exptrackpm.ui.screens.profile.ProfileViewModel
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
+import java.util.Currency
 import java.util.Locale
 
 
@@ -47,9 +50,21 @@ import java.util.Locale
 @Composable
 fun TransactionListScreen(
     viewModel: TransactionViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = viewModel(),
     navController: NavController
 ) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
+    val user by profileViewModel.user.collectAsStateWithLifecycle() // Collect user from ProfileViewModel
+
+    // Derive current currency symbol based on user's preference
+    val currentCurrencyCode = user?.currency ?: "EUR" // Default to EUR if user not loaded
+    val currentCurrencySymbol = remember(currentCurrencyCode) {
+        try {
+            Currency.getInstance(currentCurrencyCode).symbol
+        } catch (e: IllegalArgumentException) {
+            currentCurrencyCode // Fallback to code if invalid currency code
+        }
+    }
     val filter by viewModel.filter.collectAsState()
     Log.d("transactions", transactions.toString())
     Log.d("transactions-filter", filter.toString())
@@ -70,7 +85,7 @@ fun TransactionListScreen(
         .padding(horizontal = 16.dp)
     )  {
         TransactionFilterBar(selectedFilter = filter, onFilterChange = viewModel::setFilter)
-        TransactionList(transactions, navController)
+        TransactionList(transactions, navController, currentCurrencySymbol)
     }}
 }
 
@@ -100,24 +115,25 @@ fun TransactionFilterBar(
 }
 
 @Composable
-fun TransactionList(transactions: List<Transaction>, navController: NavController) {
+fun TransactionList(transactions: List<Transaction>, navController: NavController, currentCurrencySymbol: String) {
     LazyColumn(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(transactions) { txn ->
-            TransactionItem(txn, onClick = { navController.navigate("transactionDetails/${txn.id}") })
+            TransactionItem(txn, onClick = { navController.navigate("transactionDetails/${txn.id}") }, currentCurrencySymbol = currentCurrencySymbol)
 
         }
     }
 }
 
 @Composable
-fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
+fun TransactionItem(transaction: Transaction, onClick: () -> Unit, currentCurrencySymbol: String) {
     val isIncome = transaction.type == TransactionType.INCOME
     val formattedDate = remember(transaction.date) {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(transaction.date.toDate())
     }
+    val formatter = remember { DecimalFormat("0.00") }
 
     Card(
         modifier = Modifier
@@ -128,7 +144,7 @@ fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                 Text(
-                    text = "${if (isIncome) "+" else "-"}$${transaction.amount}",
+                    text = "${if (isIncome) "+" else "-"}$currentCurrencySymbol${formatter.format(transaction.amount)}",
                     color = if (isIncome) Color(0xFF2E7D32) else Color.Red,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp

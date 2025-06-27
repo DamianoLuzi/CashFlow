@@ -3,6 +3,7 @@ package com.example.exptrackpm.ui.screens.dashboard
 
 import Transaction
 import TransactionType
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +35,7 @@ fun BalanceLineChart(
     displayLabels: List<String>,
     modifier: Modifier = Modifier
 ) {
-
+    Log.d("balancelinechart",transactions.toString())
     val dailyNetChange = allDatesSorted.associateWith { 0f }.toMutableMap()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
