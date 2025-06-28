@@ -23,10 +23,5 @@ object CategoryService {
                 if (error != null || snapshot == null) return@addSnapshotListener
                 onData(snapshot.toObjects(Category::class.java))
             }
-//            .addOnSuccessListener { snapshot ->
-//                val categories = snapshot.toObjects(Category::class.java)
-//                onResult(categories)
-//            }
-
     }
 }

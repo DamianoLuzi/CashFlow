@@ -156,55 +156,11 @@ fun BudgetScreen(
                     )
                 }
             }
-//            // Budget input
-//            OutlinedTextField(
-//                value = category,
-//                onValueChange = { category = it },
-//                label = { Text("Category") },
-//                modifier = Modifier.fillMaxWidth(),
-//                trailingIcon = {
-//                    IconButton(onClick = { expanded = !expanded }) {
-//                        Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown Arrow")
-//                    }
-//                },
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
-//
-//            DropdownMenu(
-//                expanded = expanded,
-//                onDismissRequest = { expanded = false },
-//            ) {
-//                allCategoriesForDisplay.forEach {
-//                        cat -> // Renamed `option` to `cat` for clarity
-//                    DropdownMenuItem(
-//                        text = {
-//                            Row(
-//                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-//                                horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between emoji and text
-//                            ) {
-//                                Text(text = cat.icon ?: "") // Display emoji
-//                                Text(text = cat.name)        // Display category name
-//                            }
-//                        },
-//                        onClick = {
-//                            category = cat.name // Save only the name to the transaction
-//                            expanded = false
-//                        }
-//                    )
-//                }
-//                DropdownMenuItem(
-//                    text = { Text("➕ Add Custom Category") },
-//                    onClick = {
-//                        expanded = false
-//                        navController.navigate("addcategory")
-//                    }
-//                )
-//            }
 
             OutlinedTextField(
                 value = amountText,
                 onValueChange = { amountText = it },
-                label = { Text("Amount") },
+                label = { Text("Limit Amount") },
                 keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )

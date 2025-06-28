@@ -92,32 +92,72 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
     val dateToIndex = allDatesSorted.withIndex().associate { it.value to it.index.toFloat() }
     Log.d("index",dateToIndex.toString())
 
-    val displayFormat = SimpleDateFormat(dateFormat, Locale.getDefault())
+
 
     val allDates = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet()
-    val displayLabels = allDatesSorted.map {
-        displayFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val calendar = Calendar.getInstance()
+
+    val paddedDates = mutableListOf<String>()
+    if (allDatesSorted.isNotEmpty()) {
+        val firstDate = sdf.parse(allDatesSorted.first())!!
+        val lastDate = sdf.parse(allDatesSorted.last())!!
+
+        // Add one day before and after for padding
+        calendar.time = firstDate
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        paddedDates.add(sdf.format(calendar.time))
+
+        paddedDates.addAll(allDatesSorted)
+
+        calendar.time = lastDate
+        calendar.add(Calendar.DAY_OF_YEAR, 1)
+        paddedDates.add(sdf.format(calendar.time))
+    } else {
+        paddedDates.addAll(allDatesSorted)
     }
 
-    val expensePoints = allDates.mapIndexed { index, date ->
+    val finalDates = paddedDates.toSortedSet().toList()
+
+//    val expensePoints = allDates.mapIndexed { index, date ->
+//        Point(index.toFloat(), expenseGrouped[date] ?: 0f)
+//    }
+//
+//    val incomePoints = allDates.mapIndexed { index, date ->
+//        Point(index.toFloat(), incomeGrouped[date] ?: 0f)
+//    }
+    val displayFormat = SimpleDateFormat(dateFormat, Locale.getDefault())
+    val displayLabels = finalDates.map {
+        displayFormat.format(sdf.parse(it)!!)
+    }
+//    val displayLabels = allDatesSorted.map {
+//        displayFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
+//    }
+
+    val expensePoints = finalDates.mapIndexed { index, date ->
         Point(index.toFloat(), expenseGrouped[date] ?: 0f)
     }
 
-    val incomePoints = allDates.mapIndexed { index, date ->
+    val incomePoints = finalDates.mapIndexed { index, date ->
         Point(index.toFloat(), incomeGrouped[date] ?: 0f)
     }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val stepSize = if (allDatesSorted.isNotEmpty()) {
-        screenWidth / (allDatesSorted.size + 1)
+//    val stepSize = if (allDatesSorted.isNotEmpty()) {
+//        screenWidth / (allDatesSorted.size + 1)
+//    } else {
+//        1.dp // avoid divide-by-zero if somehow empty
+//    }
+    val stepSize = if (finalDates.isNotEmpty()) {
+        screenWidth / (finalDates.size + 1)
     } else {
-        1.dp // avoid divide-by-zero if somehow empty
+        1.dp
     }
 
     val xAxisData = AxisData.Builder()
         .axisStepSize(stepSize)
         .backgroundColor(Color.Transparent)
         //.steps(expensePoints.size - 1)
-        .steps(allDatesSorted.size - 1)
+        .steps(finalDates.size - 1)
         .labelData { i -> displayLabels.getOrElse(i) { "" } }
         .labelAndAxisLinePadding(10.dp)
         .build()
@@ -191,7 +231,6 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
             }
 
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth().weight(1f)) { page ->
-                // Each page is a separate scrollable column of charts related to that tab
                 Column(modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
@@ -199,7 +238,7 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
                     when (page) {
                         0 -> {
                             Spacer(Modifier.height(24.dp))
-                            BalanceLineChart(transactions,allDatesSorted,displayLabels)
+                            BalanceLineChart(transactions,finalDates,displayLabels)
                             Spacer(Modifier.height(24.dp))
                         }
                         1 -> {

@@ -61,7 +61,7 @@ class AuthenticationManager(private val context: Context) {
                     val user = auth.currentUser
                     val profile = User(
                         displayName =  user!!.displayName ?: user.email?.substringBefore("@") ?: "New User",
-                        avatarUrl = user.photoUrl?.toString(),
+                        //avatarUrl = user.photoUrl?.toString(),
                         email = user.email ?: ""
                     )
                     Firebase.firestore.collection("users")

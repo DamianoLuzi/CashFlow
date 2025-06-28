@@ -57,19 +57,17 @@ fun Navigation() {
     val isUserLoggedIn by SessionManager.isUserLoggedIn.collectAsState()
     val sharedPrefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     Log.d("auth", "user is logged in: ${isUserLoggedIn}")
-    //val startDestination = if (isUserLoggedIn) "overview" else "login"
     val startDestination = if (isUserLoggedIn) {
-        // If logged in, check if notification permission has been dealt with
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             !sharedPrefs.getBoolean(KEY_NOTIFICATION_PERMISSION_REQUESTED, false) &&
             ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
-            "notification_permission_screen" // Go to permission screen if not requested/granted on API 33+
+            "notification_permission_screen"
         } else {
-            "overview" // Else, go to overview
+            "overview"
         }
     } else {
-        "login" // If not logged in, go to login
+        "login"
     }
     Scaffold(
         bottomBar = {

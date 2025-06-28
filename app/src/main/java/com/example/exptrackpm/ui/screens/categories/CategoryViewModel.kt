@@ -13,12 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class CategoryViewModel : ViewModel() {
     private val auth = Firebase.auth
-//    var categories by mutableStateOf<List<Category>>(emptyList())
-//        private set
-
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories = _categories.asStateFlow()
-
     var name by mutableStateOf("")
     var icon by mutableStateOf<String?>(null)
     var color by mutableStateOf<String?>(null)

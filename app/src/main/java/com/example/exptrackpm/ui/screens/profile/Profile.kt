@@ -1,7 +1,6 @@
 package com.example.exptrackpm.ui.screens.profile
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -51,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil3.compose.rememberAsyncImagePainter
 import com.example.exptrackpm.auth.SessionManager
 import com.example.exptrackpm.domain.model.NotificationPreferences
 import com.example.exptrackpm.theme.ExpTrackPMTheme
@@ -77,7 +74,7 @@ fun Profile(
     var currency by remember(user) { mutableStateOf(user?.currency ?: "EUR") }
     var theme by remember(user) { mutableStateOf(user?.theme ?: "System default") }
     var overBudgetAlerts by remember(user) { mutableStateOf(user?.notificationPreferences?.overBudgetAlerts ?: false) }
-    var weeklySummaries by remember(user) { mutableStateOf(user?.notificationPreferences?.weeklySummaries ?: false) }
+    var weeklySummaries by remember(user) { mutableStateOf(user?.notificationPreferences?.spendingSummaries ?: false) }
     val hasModifications by remember(user, displayName, currency, theme, overBudgetAlerts, weeklySummaries) {
         derivedStateOf {
             user?.let { originalUser ->
@@ -86,7 +83,7 @@ fun Profile(
                         currency == originalUser.currency &&
                         theme == originalUser.theme &&
                         overBudgetAlerts == originalPrefs.overBudgetAlerts &&
-                        weeklySummaries == originalPrefs.weeklySummaries)
+                        weeklySummaries == originalPrefs.spendingSummaries)
             } ?: false // If user is null, there are no modifications to save
         }
     }
@@ -143,7 +140,7 @@ fun Profile(
                         user?.let { originalUser ->
                             val updatedPrefs = NotificationPreferences(
                                 overBudgetAlerts = overBudgetAlerts,
-                                weeklySummaries = weeklySummaries
+                                spendingSummaries = weeklySummaries
                             )
                             val updatedUser = originalUser.copy(
                                 displayName = displayName,
@@ -197,18 +194,6 @@ fun Profile(
                     .verticalScroll(rememberScrollState()) // Make content scrollable
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-
-                user?.avatarUrl?.let { url ->
-                    Image(
-                        painter = rememberAsyncImagePainter(url),
-                        contentDescription = "Avatar",
-                        modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = user!!.email,
                     onValueChange = { /* Email is read-only */ },
@@ -225,8 +210,6 @@ fun Profile(
                     enabled = false,
                     modifier = Modifier.fillMaxWidth()
                 )
-
-
             Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
@@ -236,9 +219,6 @@ fun Profile(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-
-
-                // Currency Dropdown
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = currency,
@@ -271,8 +251,6 @@ fun Profile(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Theme Dropdown
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = theme,
@@ -316,7 +294,10 @@ fun Profile(
                 NotificationPreferenceItem(
                     label = "Weekly Summaries",
                     checked = weeklySummaries,
-                    onCheckedChange = { weeklySummaries = it }
+                    onCheckedChange = {
+                        weeklySummaries = it
+                        viewModel.setSpendingSummaryPreference(true)
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(

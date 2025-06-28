@@ -73,7 +73,7 @@ object TransactionService {
             .whereEqualTo("userId", userId)
             .whereGreaterThanOrEqualTo("date", startDate)
             .whereLessThanOrEqualTo("date", endDate)
-            .get() // Using get() for a one-time fetch, not addSnapshotListener for a worker
+            .get()
             .addOnSuccessListener { querySnapshot ->
                 val transactions = querySnapshot.toObjects(Transaction::class.java)
                 Log.d("TransactionService", "Fetched ${transactions.size} transactions for user $userId between $startDate and $endDate.")

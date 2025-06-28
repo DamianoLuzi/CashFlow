@@ -1,7 +1,6 @@
 package com.example.exptrackpm.ui.screens.transactions
 
 
-import Transaction
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.net.Uri
@@ -109,9 +108,7 @@ fun TransactionDetailsScreen(
     }
 
     LaunchedEffect(transaction) {
-
-
-        transaction?.let { //it: Transaction ->
+        transaction?.let {
             amount = it.amount.toString()
             description = it.description
             category = it.category
@@ -169,16 +166,6 @@ fun TransactionDetailsScreen(
                 readOnly = !editing,
                 modifier = Modifier.fillMaxWidth()
             )
-
-
-
-//            Text("Date: ${date?.let { dateFormatter.format(it) } ?: "Not set"}")
-//            if (editing) {
-//                Button(onClick = { datePickerDialog.show() }) {
-//                    Text("Pick Date")
-//                }
-//            }
-
             OutlinedTextField(
                 value = date?.let { dateFormatter.format(it) } ?: "Not set",
                 onValueChange = {}, // We disable manual editing
@@ -225,13 +212,11 @@ fun TransactionDetailsScreen(
                 }
 
                 isPdfFile(receiptUrl) -> {
-                    // Placeholder thumbnail for PDF
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
                             .clickable {
-                                // Open the PDF in a browser or PDF viewer
                                 val intent = Intent(Intent.ACTION_VIEW).apply {
                                     setDataAndType(Uri.parse(receiptUrl), "application/pdf")
                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK

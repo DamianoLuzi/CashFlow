@@ -25,8 +25,6 @@ import androidx.navigation.NavController
 @Composable
 fun NotificationPermissionScreen(navController: NavController) {
     val context = LocalContext.current
-    // No need for 'activity' cast here unless you're implementing 'shouldShowRequestPermissionRationale' dialogs
-    // If you do, you'd pass a reference to your MainActivity or use LocalContext.current as ComponentActivity
     // val activity = LocalContext.current as? ComponentActivity
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
@@ -35,16 +33,12 @@ fun NotificationPermissionScreen(navController: NavController) {
         if (isGranted) {
             Toast.makeText(context, "Notification permission granted!", Toast.LENGTH_SHORT).show()
             Log.d("Permission", "POST_NOTIFICATIONS permission granted.")
-            // Navigate to the next screen (e.g., "overview") after permission is granted
             navController.navigate("overview") {
-                popUpTo("notification_permission_screen") { inclusive = true } // Remove this screen from back stack
+                popUpTo("notification_permission_screen") { inclusive = true }
             }
         } else {
             Toast.makeText(context, "Notification permission denied. You won't receive budget alerts.", Toast.LENGTH_LONG).show()
             Log.d("Permission", "POST_NOTIFICATIONS permission denied.")
-            // If denied, you might still want to proceed to the overview, but with reduced functionality.
-            // Or stay on this screen and explain why it's needed.
-            // For now, let's proceed but this could be an area for more advanced UX.
             navController.navigate("overview") {
                 popUpTo("notification_permission_screen") { inclusive = true }
             }
@@ -69,7 +63,6 @@ fun NotificationPermissionScreen(navController: NavController) {
                 }
             }
         } else {
-            // On older versions, permission is granted by default, just navigate.
             Log.d("Permission", "POST_NOTIFICATIONS not required for API < 33. Navigating to overview.")
             navController.navigate("overview") {
                 popUpTo("notification_permission_screen") { inclusive = true }
@@ -85,8 +78,6 @@ fun NotificationPermissionScreen(navController: NavController) {
     ) {
         Text("Welcome to ExpTrackPM! We need your permission to send you budget alerts.")
         Button(onClick = {
-            // This button allows re-requesting if the initial LaunchedEffect
-            // didn't trigger or was denied and the user wants to try again.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 if (ContextCompat.checkSelfPermission(
                         context,

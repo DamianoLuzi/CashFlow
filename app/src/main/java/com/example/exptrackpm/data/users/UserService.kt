@@ -12,7 +12,6 @@ object UserRepository {
     private val firestore = Firebase.firestore
     private val auth = Firebase.auth
 fun getUser(
-    //userId: String,
     onResult: (User?) -> Unit) {
     Log.d("urauth"," auth.uid: ${auth.uid!!} \n auth.currentUser.uid ${auth.currentUser!!.uid}")
     //firestore.collection("users").document(userId).get()
@@ -54,14 +53,12 @@ fun getUser(
     }
 
     fun getBudgets(
-        //userId: String,
         onResult: (List<Budget>) -> Unit) {
         firestore.collection("budgets")
-            .whereEqualTo("userId", auth.currentUser!!.uid) // Filter budgets by the user ID
+            .whereEqualTo("userId", auth.currentUser!!.uid)
             .get()
             .addOnSuccessListener { query ->
                 val budgets = query.documents.mapNotNull { doc ->
-                    // Still ensure 'id' is set from document ID, 'userId' should already be in the Budget object
                     doc.toObject(Budget::class.java)?.copy(id = doc.id)
                 }
                 Log.d("UserRepository", "Fetched ${budgets.size} budgets for user ${auth.currentUser!!.uid}.")

@@ -17,8 +17,10 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,12 +63,13 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavController) {
+fun Overview(
+    viewModel: TransactionViewModel = viewModel(),
+    navController: NavController) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     Log.d("trn", transactions.toString())
     val now = Calendar.getInstance().time
     val dateRanges = listOf("7d", "30d", "90d", "1Y")
-
     var selectedRange by remember { mutableStateOf("7d") }
     val options = listOf("7d", "30d", "90d", "1Y")
     val daysBack = when (selectedRange) {
@@ -113,8 +117,6 @@ fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavCo
     if (allDatesSorted.isNotEmpty()) {
         val firstDate = sdf.parse(allDatesSorted.first())!!
         val lastDate = sdf.parse(allDatesSorted.last())!!
-
-        // Add one day before and after for padding
         calendar.time = firstDate
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         paddedDates.add(sdf.format(calendar.time))
@@ -182,7 +184,6 @@ fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavCo
         selectedOption = selectedRange,
         onOptionSelected = { selectedRange = it }
     )
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -274,6 +275,8 @@ fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavCo
                 }
             }
 
+            Spacer(Modifier.padding(24.dp))
+
             Button(
                 onClick = { navController.navigate("pager") },
                 modifier = Modifier
@@ -286,9 +289,54 @@ fun Overview(viewModel: TransactionViewModel = viewModel(), navController: NavCo
                     Icon(Icons.Filled.ArrowForward, contentDescription = "Plots")
                 }
             }
+
+            Spacer(Modifier.padding(24.dp))
+
+            Button(
+                onClick = { navController.navigate("setbudget") },
+                modifier = Modifier
+                    .padding(4.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
+            ) {
+                Row {
+                    Text("Plan spending limits")
+                    Icon(Icons.Filled.ArrowForward, contentDescription = "Plots")
+                }
+            }
         }
     }
 }
+
+@Composable
+fun Summary(label: String, amount: String, amountColor: Color, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = label, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(text = amount, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = amountColor)
+        }
+    }
+}
+
+
+@Composable
+fun TimeRangePicker(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        options.forEach { label ->
+            FilterChip(
+                modifier = Modifier.padding(horizontal = 4.dp),
+                selected = selectedOption == label,
+                onClick = { onOptionSelected(label) },
+                label = { Text(label) }
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun RefinedDshrbPreview() {

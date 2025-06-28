@@ -8,7 +8,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.exptrackpm.data.users.UserRepository
 import com.example.exptrackpm.domain.model.User
-import com.example.exptrackpm.ui.screens.notifications.WeeklySummaryWorker
+import com.example.exptrackpm.ui.screens.notifications.SpendingSummaryWorker
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,14 +28,11 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadUser() {
         _loading.value = true
-        UserRepository.getUser(
-            //userId!!
-            ) { fetchedUser ->
+        UserRepository.getUser { fetchedUser ->
             _user.value = fetchedUser
             _loading.value = false
-            // Schedule or cancel worker based on fetched user preferences
             fetchedUser?.notificationPreferences?.let { prefs ->
-                scheduleOrCancelWeeklySummary(prefs.weeklySummaries)
+                scheduleOrCancelWeeklySummary(prefs.spendingSummaries)
             }
         }
     }
@@ -45,10 +42,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         UserRepository.updateUser(updatedUser) { success ->
             _loading.value = false
             if (success) {
-                _user.value = updatedUser // Update local state on success
-                // Re-schedule or cancel worker if notification preferences changed
-                scheduleOrCancelWeeklySummary(updatedUser.notificationPreferences.weeklySummaries)
-                Log.d("ProfileViewModel", "User updated successfully. Preferences: ${updatedUser.notificationPreferences.weeklySummaries}")
+                _user.value = updatedUser
+                scheduleOrCancelWeeklySummary(updatedUser.notificationPreferences.spendingSummaries)
+                Log.d("ProfileViewModel", "User updated successfully. Preferences: ${updatedUser.notificationPreferences.spendingSummaries}")
             } else {
                 Log.e("ProfileViewModel", "Failed to update user.")
             }
@@ -60,18 +56,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         val workTag = "WeeklySummaryWork"
 
         if (enable) {
-            // Define the work request
-            val weeklySummaryRequest = PeriodicWorkRequestBuilder<WeeklySummaryWorker>(
+            val weeklySummaryRequest = PeriodicWorkRequestBuilder<SpendingSummaryWorker>(
                 repeatInterval = 5, // Run every 7 days
                 repeatIntervalTimeUnit = TimeUnit.MINUTES
-                // For exact timing (e.g., every Monday at 9 AM), you'd need:
-                // initialDelay = calculateInitialDelay(DayOfWeek.MONDAY, LocalTime.of(9, 0)),
-                // initialDelayTimeUnit = TimeUnit.MILLISECONDS
             )
                 .addTag(workTag) // Add a tag to uniquely identify this work
                 .build()
 
-            // Enqueue the unique periodic work. UPDATE replaces existing work with the same name.
             workManager.enqueueUniquePeriodicWork(
                 workTag,
                 ExistingPeriodicWorkPolicy.UPDATE,
@@ -79,19 +70,17 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             )
             Log.d("ProfileViewModel", "Weekly Summary Worker scheduled.")
         } else {
-            // Cancel the work if notifications are disabled
             workManager.cancelUniqueWork(workTag)
             Log.d("ProfileViewModel", "Weekly Summary Worker cancelled.")
         }
     }
 
-    // You would call this function when the user toggles notification preferences
-    fun setWeeklySummaryPreference(enable: Boolean) {
+    fun setSpendingSummaryPreference(enable: Boolean) {
         _user.value?.let { currentUser ->
             val updatedUser = currentUser.copy(
-                notificationPreferences = currentUser.notificationPreferences.copy(weeklySummaries = enable)
+                notificationPreferences = currentUser.notificationPreferences.copy(spendingSummaries = enable)
             )
-            updateUser(updatedUser) // Call updateUser to persist changes and re-schedule worker
+            updateUser(updatedUser)
         } ?: Log.e("ProfileViewModel", "Cannot set preference: No current user.")
     }
 

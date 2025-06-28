@@ -63,7 +63,6 @@ val defaultCategories = listOf(
     Category(name = "Services", icon = "🔧"),
     Category(name = "Groceries", icon = "🛒"),
     Category(name = "Other", icon = "🤷"),
-    // Add more as needed
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,34 +85,21 @@ fun AddTransactionScreen(
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val customCategories by catViewModel.categories.collectAsStateWithLifecycle()
 
-    val allCategories = remember(customCategories) {
-        (defaultCategories + customCategories.map { it.name })
-            .distinct()
-    }
-
     val allCategoriesForDisplay = remember(customCategories) {
         val combinedList = mutableListOf<Category>()
-
-        // Add default categories first
         defaultCategories.forEach { defaultCat ->
             combinedList.add(defaultCat)
         }
-
-        // Add custom categories, preferring custom ones if names overlap
         customCategories.forEach { customCat ->
             val existingIndex = combinedList.indexOfFirst { it.name == customCat.name }
             if (existingIndex != -1) {
-                // If a custom category with the same name exists, replace the default one
                 combinedList[existingIndex] = customCat
             } else {
-                // Otherwise, add the custom category
                 combinedList.add(customCat)
             }
         }
-        combinedList.sortedBy { it.name } // Sort by name for display
+        combinedList.sortedBy { it.name }
     }
-
-
 
     Scaffold(
         topBar = {
@@ -134,8 +120,6 @@ fun AddTransactionScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // Transaction Type Toggle
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 listOf(TransactionType.EXPENSE, TransactionType.INCOME).forEach { type ->
                     FilterChip(
@@ -160,8 +144,6 @@ fun AddTransactionScreen(
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth()
             )
-
-            // Dropdown for Category
             Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = category,
@@ -182,7 +164,7 @@ fun AddTransactionScreen(
                     onDismissRequest = { expanded = false },
                 ) {
                     allCategoriesForDisplay.forEach {
-                            cat -> // Renamed `option` to `cat` for clarity
+                            cat ->
                         DropdownMenuItem(
                             text = {
                                 Row(

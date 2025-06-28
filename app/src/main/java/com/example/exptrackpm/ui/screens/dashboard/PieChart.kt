@@ -15,20 +15,12 @@ import co.yml.charts.ui.piechart.charts.PieChart
 import co.yml.charts.ui.piechart.models.PieChartConfig
 import co.yml.charts.ui.piechart.models.PieChartData
 
-/**
- * A Composable function that displays a pie chart of transaction amounts by category.
- *
- * @param transactions The list of transactions to display.
- * @param title The title for the chart (e.g., "Spending Distribution").
- * @param modifier Modifier for the PieChart composable.
- */
 @Composable
 fun SpendingPieChart(
     transactions: List<Transaction>,
     title: String,
     modifier: Modifier = Modifier
 ) {
-    // Group transactions by category and sum their amounts
     val categoryAmounts = transactions
         .groupBy { it.category }
         .mapValues { entry -> entry.value.sumOf { it.amount.toDouble() }.toFloat() }
@@ -39,8 +31,6 @@ fun SpendingPieChart(
         Text("No $title data to display for the selected period.")
         return
     }
-
-    // Generate colors for pie slices
     val colors = listOf(
         Color(0xFFE57373), // Red
         Color(0xFF81C784), // Green
@@ -60,20 +50,15 @@ fun SpendingPieChart(
     )
     var colorIndex = 0
 
-    // Define PieChartConfig based on your provided example
     val pieChartConfig = PieChartConfig(
-        //percentVisible = true, // To show percentage labels within slices
         isAnimationEnable = true,
-        showSliceLabels = true, // Set to false as per your example (controls outer labels)
+        showSliceLabels = true,
         animationDuration = 1500
     )
-
-    // Create PieChartData.Slice for each category
-    // Corrected: Using PieChartData.Slice and ensuring the lambda returns this type
     val slices = categoryAmounts.map { (category, amount) ->
         val percentage = (amount / totalAmount) * 100
         val color = colors[colorIndex % colors.size]
-        colorIndex++ // Move to next color
+        colorIndex++
 
         PieChartData.Slice(
             label = category,
@@ -90,11 +75,10 @@ fun SpendingPieChart(
         modifier = modifier
             .fillMaxWidth()
             .height(600.dp),
-        // Pass pieChartData and pieChartConfig separately
         pieChartData = PieChartData(
-            slices = slices, // Correctly passing the List<PieChartData.Slice>
-            plotType = PlotType.Pie, // Added missing plotType
+            slices = slices,
+            plotType = PlotType.Pie,
         ),
-        pieChartConfig = pieChartConfig // Pass the new config object
+        pieChartConfig = pieChartConfig
     )
 }
