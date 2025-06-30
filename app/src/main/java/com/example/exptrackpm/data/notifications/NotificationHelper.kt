@@ -1,4 +1,4 @@
-package com.example.exptrackpm.ui.screens.notifications
+package com.example.exptrackpm.data.notifications
 
 import android.Manifest
 import android.app.NotificationChannel

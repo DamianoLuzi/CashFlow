@@ -33,7 +33,6 @@ class CategoryViewModel : ViewModel() {
     fun addCategory(
         name: String,
         icon: String,
-        color: String
     ) {
         val uid = auth.currentUser?.uid ?: return
 
@@ -46,7 +45,6 @@ class CategoryViewModel : ViewModel() {
             userId = uid,
             name = name,
             icon = icon,
-            color = color
         )
 
         CategoryService.addCategory(newCategory, {

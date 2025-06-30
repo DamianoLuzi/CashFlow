@@ -29,7 +29,6 @@ fun AddCategoryScreen(
 ) {
     var categoryName by remember { mutableStateOf("") }
     var icon by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf("") }
     val context = LocalContext.current
 
     Column(Modifier.padding(16.dp)) {
@@ -45,16 +44,10 @@ fun AddCategoryScreen(
             label = { Text("Icon (emoji)") },
             modifier = Modifier.fillMaxWidth()
         )
-        OutlinedTextField(
-            value = color,
-            onValueChange = { color = it },
-            label = { Text("Color") },
-            modifier = Modifier.fillMaxWidth()
-        )
         Button(
             onClick = {
                 if (categoryName.isNotBlank()) {
-                    viewModel.addCategory(categoryName, icon, color)
+                    viewModel.addCategory(categoryName, icon)
                     Toast.makeText(context, "Category added", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 }

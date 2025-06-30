@@ -6,9 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.exptrackpm.data.notifications.SpendingSummaryWorker
 import com.example.exptrackpm.data.users.UserRepository
 import com.example.exptrackpm.domain.model.User
-import com.example.exptrackpm.ui.screens.notifications.SpendingSummaryWorker
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
