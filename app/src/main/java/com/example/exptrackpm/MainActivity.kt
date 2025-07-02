@@ -12,7 +12,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         NotificationHelper.createNotificationChannels(applicationContext)
         setContent {
-            ExpTrackPMTheme {
+            ExpTrackPMTheme() {
                 Navigation()
             }
         }

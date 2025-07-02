@@ -70,21 +70,20 @@ fun Profile(
     var id by remember { mutableStateOf("") }
     var currencyExpanded by remember { mutableStateOf(false) }
     var themeExpanded by remember { mutableStateOf(false) }
-    var displayName by remember(user) { mutableStateOf(user?.displayName ?: "") }
     var currency by remember(user) { mutableStateOf(user?.currency ?: "EUR") }
     var theme by remember(user) { mutableStateOf(user?.theme ?: "System default") }
     var overBudgetAlerts by remember(user) { mutableStateOf(user?.notificationPreferences?.overBudgetAlerts ?: false) }
     var weeklySummaries by remember(user) { mutableStateOf(user?.notificationPreferences?.spendingSummaries ?: false) }
-    val hasModifications by remember(user, displayName, currency, theme, overBudgetAlerts, weeklySummaries) {
+    val hasModifications by remember(user, currency, theme, overBudgetAlerts, weeklySummaries) {
         derivedStateOf {
             user?.let { originalUser ->
                 val originalPrefs = originalUser.notificationPreferences
-                !(displayName == originalUser.displayName &&
+                !(
                         currency == originalUser.currency &&
                         theme == originalUser.theme &&
                         overBudgetAlerts == originalPrefs.overBudgetAlerts &&
                         weeklySummaries == originalPrefs.spendingSummaries)
-            } ?: false // If user is null, there are no modifications to save
+            } ?: false
         }
     }
     LaunchedEffect(Unit) {
@@ -94,7 +93,6 @@ fun Profile(
     LaunchedEffect(user) {
         user?.let {
             id = it.id
-            displayName = it.displayName ?: ""
             email = it.email
             currency = it.currency
             theme = it.theme
@@ -143,7 +141,6 @@ fun Profile(
                                 spendingSummaries = weeklySummaries
                             )
                             val updatedUser = originalUser.copy(
-                                displayName = displayName,
                                 currency = currency,
                                 theme = theme,
                                 notificationPreferences = updatedPrefs
@@ -212,13 +209,7 @@ fun Profile(
                 )
             Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = displayName,
-                    onValueChange = { displayName = it },
-                    label = { Text("Display Name") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = currency,

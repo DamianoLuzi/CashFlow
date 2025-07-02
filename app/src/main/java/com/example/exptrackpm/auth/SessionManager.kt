@@ -29,9 +29,7 @@ object SessionManager {
         firebaseAuth.addAuthStateListener {
             _isUserLoggedIn.value = it.currentUser != null
             if (it.currentUser != null) {
-                startAutoLogoutTimer(30 * 60 * 1000) // user stays logged in for 30 minutes
-            } else {
-                //cancelAutoLogoutTimer()
+                startAutoLogoutTimer(30 * 60 * 1000)
             }
         }
     }
@@ -56,16 +54,13 @@ class AuthenticationManager(private val context: Context) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Sign in success
                     Log.d("signup", "createUserWithEmail:success")
                     val user = auth.currentUser
                     val profile = User(
-                        displayName =  user!!.displayName ?: user.email?.substringBefore("@") ?: "New User",
-                        //avatarUrl = user.photoUrl?.toString(),
-                        email = user.email ?: ""
+                        email = user?.email ?: ""
                     )
                     Firebase.firestore.collection("users")
-                        .document(user.uid)
+                        .document(user!!.uid)
                         .set(profile)
                         .addOnSuccessListener {
                             trySend(AuthResponse.Success)
@@ -75,7 +70,6 @@ class AuthenticationManager(private val context: Context) {
                         }
                     trySend(AuthResponse.Success)
                 } else {
-                    // If sign in fails, display a message to the user.
                     Log.w("signup", "createUserWithEmail:failure", task.exception)
                     Toast.makeText(
                         context,

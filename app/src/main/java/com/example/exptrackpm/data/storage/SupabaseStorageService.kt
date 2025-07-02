@@ -6,11 +6,11 @@ import android.provider.OpenableColumns
 import android.util.Log
 import com.example.exptrackpm.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
+import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
@@ -21,12 +21,11 @@ object SupabaseStorageService {
         supabaseKey = BuildConfig.SUPABASE_ANON_KEY
     ) {
         install(Storage)
+        install(Auth)
     }
 
     suspend fun uploadFileToSupabase(context: Context, uri: Uri, originalFileName: String?): String? {
         val user = FirebaseAuth.getInstance().currentUser
-        val tokenResult = user!!.getIdToken(false).await()
-        val jwt = tokenResult.token
         return withContext(Dispatchers.IO) {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)

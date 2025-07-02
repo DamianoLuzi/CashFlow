@@ -13,12 +13,9 @@ object UserRepository {
     private val auth = Firebase.auth
 fun getUser(
     onResult: (User?) -> Unit) {
-    Log.d("urauth"," auth.uid: ${auth.uid!!} \n auth.currentUser.uid ${auth.currentUser!!.uid}")
-    //firestore.collection("users").document(userId).get()
     firestore.collection("users").document(auth.currentUser!!.uid).get()
         .addOnSuccessListener { doc ->
             val user = doc.toObject(User::class.java)?.copy(id = doc.id)
-            //onResult(user)
             val fixedUser = user?.copy(
                 notificationPreferences = user.notificationPreferences ?: NotificationPreferences()
             )
@@ -40,9 +37,6 @@ fun getUser(
 
         val currentAuthUid = auth.currentUser?.uid
         if (currentAuthUid.isNullOrBlank() || currentAuthUid != user.id) {
-            // This is a safety check. If the user object's ID doesn't match the currently authenticated UID,
-            // it indicates a potential logic error or security concern.
-            Log.e("UserRepository", "updateUser: Mismatch between authenticated UID ($currentAuthUid) and user object ID (${user.id}). Aborting update.")
             onComplete(false)
             return
         }

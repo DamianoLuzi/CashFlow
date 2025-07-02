@@ -191,7 +191,7 @@ fun AddTransactionScreen(
                 }
             }
             Text("Receipt (optional)")
-            AddTrnReceiptUploader(
+            ReceiptUploader(
                 onImageSelected = { uri -> selectedImageUri = uri }
             )
             if (selectedImageUri != null) {
@@ -239,7 +239,7 @@ fun AddTransactionScreen(
 }
 
 @Composable
-fun AddTrnReceiptUploader(
+fun ReceiptUploader(
     onImageSelected: (Uri?) -> Unit
 ) {
     val context = LocalContext.current

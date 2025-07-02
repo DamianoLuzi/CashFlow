@@ -4,8 +4,13 @@ package com.example.exptrackpm.ui.screens.dashboard
 import Transaction
 import TransactionType
 import android.util.Log
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +26,6 @@ import co.yml.charts.ui.linechart.model.Line
 import co.yml.charts.ui.linechart.model.LineChartData
 import co.yml.charts.ui.linechart.model.LinePlotData
 import co.yml.charts.ui.linechart.model.LineStyle
-import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
 import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import java.text.DecimalFormat
@@ -79,36 +83,94 @@ fun BalanceLineChart(
         .labelAndAxisLinePadding(10.dp)
         .build()
 
-    Text(text = "Cumulative Balance Over Time", style = MaterialTheme.typography.titleLarge)
+//    LineChart(
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .height(300.dp),
+//        lineChartData = LineChartData(
+//            linePlotData = LinePlotData(
+//                lines = listOf(
+//                    Line(
+//                        dataPoints = balancePoints,
+//                        lineStyle = LineStyle(color = Color.Blue), // Net balance in blue
+//                        intersectionPoint = IntersectionPoint(),
+//                        selectionHighlightPoint = SelectionHighlightPoint(),
+//                        shadowUnderLine = ShadowUnderLine(color = Color.Blue.copy(alpha = 0.2f)),
+//                        selectionHighlightPopUp = SelectionHighlightPopUp(
+//                            popUpLabel = { x, y ->
+//                                val index = x.toInt().coerceIn(0, displayLabels.lastIndex)
+//                                val label = displayLabels[index]
+//                                val amount = DecimalFormat("0.00").format(y)
+//                                "$label: Balance €$amount"
+//                            }
+//                        )
+//                    )
+//                )
+//            ),
+//            xAxisData = xAxisData,
+//            yAxisData = yAxisData,
+//            gridLines = GridLines(),
+//            backgroundColor = Color.White
+//        )
+//    )
 
-    LineChart(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(300.dp),
-        lineChartData = LineChartData(
-            linePlotData = LinePlotData(
-                lines = listOf(
-                    Line(
-                        dataPoints = balancePoints,
-                        lineStyle = LineStyle(color = Color.Blue), // Net balance in blue
-                        intersectionPoint = IntersectionPoint(),
-                        selectionHighlightPoint = SelectionHighlightPoint(),
-                        shadowUnderLine = ShadowUnderLine(color = Color.Blue.copy(alpha = 0.2f)),
-                        selectionHighlightPopUp = SelectionHighlightPopUp(
-                            popUpLabel = { x, y ->
-                                val index = x.toInt().coerceIn(0, displayLabels.lastIndex)
-                                val label = displayLabels[index]
-                                val amount = DecimalFormat("0.00").format(y)
-                                "$label: Balance €$amount"
-                            }
-                        )
-                    )
-                )
-            ),
-            xAxisData = xAxisData,
-            yAxisData = yAxisData,
-            gridLines = GridLines(),
-            backgroundColor = Color.White
+    val finalBalance = balancePoints.lastOrNull()?.y ?: 0f
+    val balanceColor = if (finalBalance >= 0) Color(0xFF4CAF50) else Color(0xFFF44336)
+
+    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+        Text(
+            text = "Cumulative Balance",
+            style = MaterialTheme.typography.titleLarge
         )
-    )
+        Text(
+            text = "Current Balance: €${DecimalFormat("0.00").format(finalBalance)}",
+            style = MaterialTheme.typography.bodyLarge,
+            color = balanceColor
+        )
+    }
+
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LineChart(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                lineChartData = LineChartData(
+                    linePlotData = LinePlotData(
+                        lines = listOf(
+                            Line(
+                                dataPoints = balancePoints,
+                                lineStyle = LineStyle(color = balanceColor),
+                                intersectionPoint = IntersectionPoint(),
+                                shadowUnderLine = ShadowUnderLine(color = balanceColor.copy(alpha = 0.1f)),
+                                selectionHighlightPopUp = SelectionHighlightPopUp(
+                                    backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                                    //labelTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    popUpLabel = { x, y ->
+                                        val index = x.toInt().coerceIn(0, displayLabels.lastIndex)
+                                        val label = displayLabels[index]
+                                        val amount = DecimalFormat("0.00").format(y)
+                                        "$label\nBalance: €$amount"
+                                    }
+                                )
+                            )
+                        )
+                    ),
+                    xAxisData = xAxisData,
+                    yAxisData = yAxisData,
+                    gridLines = GridLines()
+                )
+            )
+        }
+    }
 }

@@ -18,10 +18,10 @@ import com.example.exptrackpm.R
 object NotificationHelper {
 
     const val OVER_BUDGET_CHANNEL_ID = "over_budget_channel"
-    const val WEEKLY_SUMMARY_CHANNEL_ID = "weekly_summary_channel"
+    const val SPENDING_SUMMARY_CHANNEL_ID = "spending_summary_channel"
 
     const val OVER_BUDGET_NOTIFICATION_ID = 1001
-    const val WEEKLY_SUMMARY_NOTIFICATION_ID = 1002
+    const val SPENDING_SUMMARY_NOTIFICATION_ID = 1002
 
     fun createNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -34,8 +34,8 @@ object NotificationHelper {
             }
 
             val weeklySummaryChannel = NotificationChannel(
-                WEEKLY_SUMMARY_CHANNEL_ID,
-                "Weekly Summaries",
+                SPENDING_SUMMARY_CHANNEL_ID,
+                "Spending Summaries",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Regular summaries of your spending and income."
@@ -104,12 +104,12 @@ object NotificationHelper {
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
             context,
-            WEEKLY_SUMMARY_NOTIFICATION_ID, // Use a unique request code for this notification's intent
+            SPENDING_SUMMARY_NOTIFICATION_ID, // Use a unique request code for this notification's intent
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val builder = NotificationCompat.Builder(context, WEEKLY_SUMMARY_CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, SPENDING_SUMMARY_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("Spending Summary")
             .setContentText(summaryText)
@@ -119,6 +119,6 @@ object NotificationHelper {
             .setAutoCancel(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
-        NotificationManagerCompat.from(context).notify(WEEKLY_SUMMARY_NOTIFICATION_ID, builder.build())
+        NotificationManagerCompat.from(context).notify(SPENDING_SUMMARY_NOTIFICATION_ID, builder.build())
     }
 }

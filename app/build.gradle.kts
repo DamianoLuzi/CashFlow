@@ -115,4 +115,19 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.2.0")
     implementation ("androidx.work:work-runtime-ktx:2.10.2")
 
+    // Optional -- Robolectric environment
+    testImplementation ("androidx.test:core:1.6.1")
+    // Optional -- Mockito framework
+    testImplementation ("org.mockito:mockito-core:5.18.0")
+    // Optional -- mockito-kotlin
+    testImplementation ("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    // Optional -- Mockk framework
+    testImplementation ("io.mockk:mockk:1.14.4")
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    // Robolectric for JVM Android testing
+    testImplementation ("org.robolectric:robolectric:4.15.1") // Use a recent stable version
+    // Also ensure you have androidx.test.ext:junit for JUnit4 and Robolectric
+    testImplementation ("androidx.test.ext:junit:1.1.5")
+
 }
