@@ -49,9 +49,6 @@ object NotificationHelper {
     }
 
     fun showOverBudgetNotification(context: Context, category: String, amountOver: Double) {
-        // Check permission before attempting to show the notification
-        // For API < 33, this permission is auto-granted.
-        // For API >= 33, it must be requested at runtime.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ActivityCompat.checkSelfPermission(
                 context,

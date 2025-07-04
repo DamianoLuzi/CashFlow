@@ -4,19 +4,17 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="RefinedDashboardPreview">
+      <SelectionState runConfigName="LoginScreenTest (1)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="AddTransactionScreenPreview">
+      <SelectionState runConfigName="SignUpTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="EnhancedDashboardPreview (1)">
-      <SelectionState runConfigName="AddTransactionScreenPreview">
+      <SelectionState runConfigName="loginScreen_inputAndClickSignIn_showsLoading()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="AddCategoryScreenPreview">
+      <SelectionState runConfigName="loginScreen_inputAndClickSignIn_showsLoading() (1)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

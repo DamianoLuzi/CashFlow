@@ -3,6 +3,7 @@ package com.example.exptrackpm.ui.screens.dashboard
 
 
 import Transaction
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,7 +27,7 @@ import java.text.DecimalFormat
 
 
 @Composable
-fun CategorizedBarChart1(
+fun CategorizedBarChart(
     transactions: List<Transaction>,
     title: String,
     barColor: Color,
@@ -87,7 +88,7 @@ fun CategorizedBarChart1(
 
 
 @Composable
-fun CategorizedBarChart(
+fun CategorizedBarChart1(
     transactions: List<Transaction>,
     title: String,
     barColor: Color,
@@ -102,6 +103,8 @@ fun CategorizedBarChart(
         Color(0xFF90CAF9), Color(0xFF81C784), Color(0xFFFFB74D),
         Color(0xFFE57373), Color(0xFFBA68C8), Color(0xFFFF8A65)
     )
+    val axisLabelColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+    val axisLineColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
 
     val barDataPoints = categoryAmounts.entries.mapIndexed { index, entry ->
         BarData(
@@ -133,6 +136,8 @@ fun CategorizedBarChart(
             if (label.length > 10) label.take(8) + "…" else label
         }
         .labelAndAxisLinePadding(10.dp)
+        .axisLabelColor(axisLabelColor)
+        .axisLineColor(axisLineColor)
         .backgroundColor(Color.Transparent)
         .build()
 

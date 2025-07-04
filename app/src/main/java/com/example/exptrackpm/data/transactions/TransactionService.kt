@@ -50,6 +50,10 @@ object TransactionService {
             .document(transaction.id!!)
             .set(transaction)
             .addOnSuccessListener { onComplete(true) }
+         .addOnFailureListener { e ->
+            Log.e("TransactionService", "Error updating transaction: ${e.message}", e)
+            onComplete(false)
+         }
     }
 
     fun getTransactionsByDateRange(

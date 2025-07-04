@@ -9,8 +9,12 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 
 object UserRepository {
-    private val firestore = Firebase.firestore
-    private val auth = Firebase.auth
+//    private val firestore = Firebase.firestore
+//    private val auth = Firebase.auth
+
+    private val firestore by lazy { Firebase.firestore }
+    private val auth by lazy { Firebase.auth }
+
 fun getUser(
     onResult: (User?) -> Unit) {
     firestore.collection("users").document(auth.currentUser!!.uid).get()

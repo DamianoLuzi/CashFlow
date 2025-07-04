@@ -27,6 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -110,7 +111,7 @@ fun LoginScreen(navController: NavController) {
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp)) else Text("Sign In")
+            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp).testTag("CircularProgressIndicator")) else Text("Sign In")
         }
 
         Spacer(modifier = Modifier.height(8.dp))

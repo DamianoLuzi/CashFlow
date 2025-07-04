@@ -80,6 +80,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.ui.test.junit4.android)
+    implementation(libs.androidx.work.testing)
+    implementation(libs.androidx.navigation.testing.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -98,9 +101,6 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
-    // Import the BoM for the Firebase platform
-    // Declare the dependency for the Cloud Firestore library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
     //YCharts
@@ -115,19 +115,35 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.2.0")
     implementation ("androidx.work:work-runtime-ktx:2.10.2")
 
-    // Optional -- Robolectric environment
+    // Robolectric environment
     testImplementation ("androidx.test:core:1.6.1")
-    // Optional -- Mockito framework
+    //  Mockito framework
     testImplementation ("org.mockito:mockito-core:5.18.0")
-    // Optional -- mockito-kotlin
+    // mockito-kotlin
     testImplementation ("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    // Optional -- Mockk framework
+    //  Mockk framework
     testImplementation ("io.mockk:mockk:1.14.4")
+    testImplementation ("io.mockk:mockk-android:1.14.4")
+    testImplementation ("io.mockk:mockk-agent:1.14.4")
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     // Robolectric for JVM Android testing
-    testImplementation ("org.robolectric:robolectric:4.15.1") // Use a recent stable version
-    // Also ensure you have androidx.test.ext:junit for JUnit4 and Robolectric
-    testImplementation ("androidx.test.ext:junit:1.1.5")
+    testImplementation ("junit:junit:4.13.2")
+    testImplementation ("org.robolectric:robolectric:4.15.1")
+    //testImplementation ("androidx.test.ext:junit:1.1.5")
+    //androidTestImplementation ("androidx.test.espresso:espresso-core:3.3.0")
+    testImplementation ("org.mockito:mockito-inline:5.2.0")
+    testImplementation ("androidx.test:core-ktx:1.6.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 
+    // Now, declare your test dependencies WITHOUT versions, as the BOM will provide them
+    //androidTestImplementation ("androidx.test.ext:junit:1.2.1")
+    //androidTestImplementation ("androidx.test.espresso:espresso-core:3.6.1")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.test.ext:junit:1.2.1")
+        force ("androidx.test.espresso:espresso-core:3.6.1")
+    }
 }
