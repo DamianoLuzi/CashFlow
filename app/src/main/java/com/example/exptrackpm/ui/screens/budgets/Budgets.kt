@@ -16,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -62,6 +64,8 @@ fun BudgetScreen(
     var category by remember { mutableStateOf("") }
     var amountText by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var budgetToDelete by remember { mutableStateOf<Budget?>(null) }
 
     val allCategoriesForDisplay = remember(customCategories) {
         val combinedList = mutableListOf<Category>()
@@ -192,15 +196,71 @@ fun BudgetScreen(
 
             LazyColumn {
                 items(budgets) { budget ->
-                    BudgetItem(budget)
+                    BudgetItem(budget) {
+                        budgetToDelete = budget
+                        showDeleteDialog = true
+                    }
                 }
+            }
+        }
+    }
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Budget") },
+            text = { Text("Are you sure you want to delete the budget for '${budgetToDelete?.category}'? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        budgetToDelete?.let {
+                            viewModel.deleteBudget(it.id!!)
+                        }
+                        showDeleteDialog = false
+                        budgetToDelete = null
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    showDeleteDialog = false
+                    budgetToDelete = null
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun BudgetItem(budget: Budget, onDeleteClick: (Budget) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically // Align items vertically
+        ) {
+            Column {
+                Text(budget.category, style = MaterialTheme.typography.titleMedium)
+                Text("Limit: ${budget.amount} ${budget.currency}", style = MaterialTheme.typography.bodyMedium)
+            }
+            IconButton(onClick = { onDeleteClick(budget) }) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete Budget")
             }
         }
     }
 }
 
 @Composable
-fun BudgetItem(budget: Budget) {
+fun BI(budget: Budget) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

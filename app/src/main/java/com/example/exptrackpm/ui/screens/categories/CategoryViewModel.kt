@@ -53,5 +53,14 @@ class CategoryViewModel : ViewModel() {
             error = it.localizedMessage
         })
     }
+    fun deleteCategory(categoryId: String) {
+        CategoryService.deleteCategory(categoryId, {
+            loadCategories() // Reload categories on successful deletion
+        }, {
+            error = it.localizedMessage
+        })
+    }
+
+
 }
 

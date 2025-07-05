@@ -198,4 +198,20 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
             Log.d("TransactionViewModel", "No budget found for category '$category' for user $userId.")
         }
     }
+
+
+    fun deleteTransaction(id: String) {
+        TransactionService.deleteTransaction(id) { success ->
+            if (success) {
+                auth.currentUser?.uid?.let { userId ->
+                    loadTransactions() // Reload transactions after deletion
+                    loadBudgets(userId)
+                    loadUserNotificationPreferences(userId)
+                }
+                Log.d("TransactionViewModel", "Transaction with ID $id deleted successfully.")
+            } else {
+                Log.e("TransactionViewModel", "Failed to delete transaction with ID $id.")
+            }
+        }
+    }
 }
