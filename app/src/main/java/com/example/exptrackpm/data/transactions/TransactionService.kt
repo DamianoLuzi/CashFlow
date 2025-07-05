@@ -88,4 +88,18 @@ object TransactionService {
                 onData(emptyList())
             }
     }
+
+    fun deleteTransaction(transactionId: String, onComplete: (Boolean) -> Unit) {
+        db.collection("transaction")
+            .document(transactionId)
+            .delete()
+            .addOnSuccessListener {
+                Log.d("TransactionService", "Transaction with ID $transactionId successfully deleted!")
+                onComplete(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("TransactionService", "Error deleting transaction with ID $transactionId: ${e.message}", e)
+                onComplete(false)
+            }
+    }
 }

@@ -9,9 +9,6 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 
 object UserRepository {
-//    private val firestore = Firebase.firestore
-//    private val auth = Firebase.auth
-
     private val firestore by lazy { Firebase.firestore }
     private val auth by lazy { Firebase.auth }
 
@@ -89,4 +86,18 @@ fun getUser(
                 Log.e("UserRepository", "Failed to save budget with ID ${finalBudget.id} for user ${finalBudget.userId}", e)
                 onComplete(false)
             }
-}}
+    }
+    fun deleteBudget(budgetId: String, onComplete: (Boolean) -> Unit) {
+        firestore.collection("budgets")
+            .document(budgetId)
+            .delete()
+            .addOnSuccessListener {
+                Log.d("UserRepository", "Budget with ID $budgetId successfully deleted!")
+                onComplete(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("UserRepository", "Error deleting budget with ID $budgetId: ${e.message}", e)
+                onComplete(false)
+            }
+    }
+}
