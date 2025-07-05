@@ -12,6 +12,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import junit.framework.TestCase.assertNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -94,4 +95,112 @@ class UserRepoTest {
         assertEquals("mockUid", result!!.id)
         assertEquals("john@example.com", result!!.email)
     }
+
+    @Test
+    fun `getUser sets default notificationPreferences when missing from Firestore`() {
+        firestoreMockStatic.close() // close previous just in case
+        firebaseAuthMockStatic.close()
+        firebaseAppMockStatic.close()
+
+        firestore = mock(FirebaseFirestore::class.java)
+        firestoreMockStatic = mockStatic(FirebaseFirestore::class.java)
+        firestoreMockStatic.`when`<FirebaseFirestore> { FirebaseFirestore.getInstance() }.thenReturn(firestore)
+
+        auth = mock(FirebaseAuth::class.java)
+        firebaseAuthMockStatic = mockStatic(FirebaseAuth::class.java)
+        firebaseAuthMockStatic.`when`<FirebaseAuth> { FirebaseAuth.getInstance() }.thenReturn(auth)
+
+        firebaseAppMockStatic = mockStatic(FirebaseApp::class.java)
+        firebaseAppMockStatic.`when`<FirebaseApp> { FirebaseApp.getInstance() }.thenReturn(mock(FirebaseApp::class.java))
+
+        firebaseUser = mock(FirebaseUser::class.java)
+        `when`(firebaseUser.uid).thenReturn("mockUid")
+        `when`(auth.currentUser).thenReturn(firebaseUser)
+        val usersCollection = mock(CollectionReference::class.java)
+        val documentRef = mock(DocumentReference::class.java)
+        val task = mock(Task::class.java) as Task<DocumentSnapshot>
+        val docSnapshot = mock(DocumentSnapshot::class.java)
+        val dummyUser = User(
+            id = "mockUid",
+            email = "john@example.com",
+            notificationPreferences = NotificationPreferences()
+        )
+
+        `when`(firestore.collection("users")).thenReturn(usersCollection)
+        `when`(usersCollection.document("mockUid")).thenReturn(documentRef)
+        `when`(documentRef.get()).thenReturn(task)
+        `when`(docSnapshot.exists()).thenReturn(true)
+        `when`(docSnapshot.id).thenReturn("mockUid")
+
+        `when`(docSnapshot.toObject(User::class.java)).thenReturn(dummyUser.copy(notificationPreferences = NotificationPreferences()))
+
+        doAnswer {
+            val listener = it.getArgument<OnSuccessListener<DocumentSnapshot>>(0)
+            listener.onSuccess(docSnapshot)
+            task
+        }.`when`(task).addOnSuccessListener(any())
+
+        repo = UserRepository
+        var result: User? = null
+
+        repo.getUser {
+            result = it
+        }
+
+        assertNotNull(result)
+        assertNotNull(result!!.notificationPreferences)
+    }
+
+
+    @Test
+    fun `getUser returns null when document does not exist`() {
+        firestoreMockStatic.close()
+        firebaseAuthMockStatic.close()
+        firebaseAppMockStatic.close()
+
+        firestore = mock(FirebaseFirestore::class.java)
+        firestoreMockStatic = mockStatic(FirebaseFirestore::class.java)
+        firestoreMockStatic.`when`<FirebaseFirestore> { FirebaseFirestore.getInstance() }.thenReturn(firestore)
+
+        auth = mock(FirebaseAuth::class.java)
+        firebaseAuthMockStatic = mockStatic(FirebaseAuth::class.java)
+        firebaseAuthMockStatic.`when`<FirebaseAuth> { FirebaseAuth.getInstance() }.thenReturn(auth)
+
+        firebaseAppMockStatic = mockStatic(FirebaseApp::class.java)
+        firebaseAppMockStatic.`when`<FirebaseApp> { FirebaseApp.getInstance() }.thenReturn(mock(FirebaseApp::class.java))
+
+        firebaseUser = mock(FirebaseUser::class.java)
+        `when`(firebaseUser.uid).thenReturn("mockUid")
+        `when`(auth.currentUser).thenReturn(firebaseUser)
+
+        val usersCollection = mock(CollectionReference::class.java)
+        val documentRef = mock(DocumentReference::class.java)
+        val task = mock(Task::class.java) as Task<DocumentSnapshot>
+        val docSnapshot = mock(DocumentSnapshot::class.java)
+
+        `when`(firestore.collection("users")).thenReturn(usersCollection)
+        `when`(usersCollection.document("mockUid")).thenReturn(documentRef)
+        `when`(documentRef.get()).thenReturn(task)
+
+        `when`(docSnapshot.exists()).thenReturn(false)
+        `when`(docSnapshot.toObject(User::class.java)).thenReturn(null)
+
+        doAnswer {
+            val listener = it.getArgument<OnSuccessListener<DocumentSnapshot>>(0)
+            listener.onSuccess(docSnapshot)
+            task
+        }.`when`(task).addOnSuccessListener(any())
+
+        repo = UserRepository
+        var result: User? = null
+
+        repo.getUser {
+            result = it
+        }
+
+        assertNull(result)
+
+    }
+
+
 }
