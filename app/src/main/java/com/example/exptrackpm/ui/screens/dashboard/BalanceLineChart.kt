@@ -79,7 +79,7 @@ fun BalanceLineChart(
         .build()
 
     val xAxisData = AxisData.Builder()
-        .axisStepSize(30.dp) // Dynamic step size based on date range could be more complex here
+        .axisStepSize(30.dp)
         .backgroundColor(Color.Transparent)
         .steps(allDatesSorted.size - 1)
         .labelData { i -> displayLabels.getOrElse(i) { "" } }
@@ -95,7 +95,7 @@ fun BalanceLineChart(
                 lines = listOf(
                     Line(
                         dataPoints = balancePoints,
-                        lineStyle = LineStyle(color = Color.Blue), // Net balance in blue
+                        lineStyle = LineStyle(color = Color.Blue),
                         intersectionPoint = IntersectionPoint(),
                         selectionHighlightPoint = SelectionHighlightPoint(),
                         shadowUnderLine = ShadowUnderLine(color = Color.Blue.copy(alpha = 0.2f)),

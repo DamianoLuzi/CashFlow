@@ -80,7 +80,7 @@ fun BudgetScreen(
                 combinedList.add(customCat)
             }
         }
-        combinedList.sortedBy { it.name } // Sort by name for display
+        combinedList.sortedBy { it.name }
     }
 
     LaunchedEffect(userId) {
@@ -134,19 +134,19 @@ fun BudgetScreen(
                     onDismissRequest = { expanded = false },
                 ) {
                     allCategoriesForDisplay.forEach {
-                            cat -> // Renamed `option` to `cat` for clarity
+                            cat ->
                         DropdownMenuItem(
                             text = {
                                 Row(
-                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between emoji and text
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Text(text = cat.icon ?: "") // Display emoji
-                                    Text(text = cat.name)        // Display category name
+                                    Text(text = cat.icon ?: "")
+                                    Text(text = cat.name)
                                 }
                             },
                             onClick = {
-                                category = cat.name // Save only the name to the transaction
+                                category = cat.name
                                 expanded = false
                             }
                         )
@@ -246,7 +246,7 @@ fun BudgetItem(budget: Budget, onDeleteClick: (Budget) -> Unit) {
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically // Align items vertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(budget.category, style = MaterialTheme.typography.titleMedium)

@@ -1,4 +1,3 @@
-// CategorizedBarChart.kt
 package com.example.exptrackpm.ui.screens.dashboard
 
 

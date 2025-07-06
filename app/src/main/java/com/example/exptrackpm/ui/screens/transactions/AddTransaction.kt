@@ -176,7 +176,7 @@ fun AddTransactionScreen(
                                 }
                             },
                             onClick = {
-                                category = cat.name // Save only the name to the transaction
+                                category = cat.name
                                 expanded = false
                             }
                         )

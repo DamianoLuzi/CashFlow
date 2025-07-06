@@ -12,7 +12,7 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.exptrackpm.MainActivity // Assuming MainActivity is the entry point
+import com.example.exptrackpm.MainActivity
 import com.example.exptrackpm.R
 
 object NotificationHelper {
@@ -65,7 +65,7 @@ object NotificationHelper {
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
             context,
-            OVER_BUDGET_NOTIFICATION_ID, // Use a unique request code for this notification's intent
+            OVER_BUDGET_NOTIFICATION_ID,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -101,7 +101,7 @@ object NotificationHelper {
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
             context,
-            SPENDING_SUMMARY_NOTIFICATION_ID, // Use a unique request code for this notification's intent
+            SPENDING_SUMMARY_NOTIFICATION_ID,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )

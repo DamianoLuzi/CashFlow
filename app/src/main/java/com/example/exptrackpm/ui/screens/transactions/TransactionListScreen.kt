@@ -54,15 +54,13 @@ fun TransactionListScreen(
     navController: NavController
 ) {
     val transactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
-    val user by profileViewModel.user.collectAsStateWithLifecycle() // Collect user from ProfileViewModel
-
-    // Derive current currency symbol based on user's preference
-    val currentCurrencyCode = user?.currency ?: "EUR" // Default to EUR if user not loaded
+    val user by profileViewModel.user.collectAsStateWithLifecycle()
+    val currentCurrencyCode = user?.currency ?: "EUR"
     val currentCurrencySymbol = remember(currentCurrencyCode) {
         try {
             Currency.getInstance(currentCurrencyCode).symbol
         } catch (e: IllegalArgumentException) {
-            currentCurrencyCode // Fallback to code if invalid currency code
+            currentCurrencyCode
         }
     }
     val filter by viewModel.filter.collectAsState()

@@ -131,7 +131,7 @@ fun Profile(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .navigationBarsPadding() // Ensures padding for system navigation bars
+                    .navigationBarsPadding()
             ) {
                 Button(
                     onClick = {
@@ -186,9 +186,9 @@ fun Profile(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues) // Apply Scaffold's padding
-                    .padding(horizontal = 16.dp) // Add specific horizontal padding for content
-                    .verticalScroll(rememberScrollState()) // Make content scrollable
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
@@ -200,15 +200,6 @@ fun Profile(
                     enabled = false
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = id ,
-                    onValueChange = {  },
-                    label = { Text("ID") },
-                    enabled = false,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            Spacer(modifier = Modifier.height(16.dp))
-
 
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -223,12 +214,12 @@ fun Profile(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { currencyExpanded = true } // Make the whole field clickable
+                            .clickable { currencyExpanded = true }
                     )
                     DropdownMenu(
                         expanded = currencyExpanded,
                         onDismissRequest = { currencyExpanded = false },
-                        modifier = Modifier.fillMaxWidth() // Adjust width to match TextField
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         currencyOptions.forEach { option ->
                             DropdownMenuItem(
@@ -260,7 +251,7 @@ fun Profile(
                     DropdownMenu(
                         expanded = themeExpanded,
                         onDismissRequest = { themeExpanded = false },
-                        modifier = Modifier.fillMaxWidth() // Adjust width to match TextField
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         themeOptions.forEach { option ->
                             DropdownMenuItem(
@@ -298,7 +289,7 @@ fun Profile(
                     Text("Manage budgets")
                 }
 
-                Spacer(modifier = Modifier.height(32.dp)) // Spacer before the bottom bar area
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }

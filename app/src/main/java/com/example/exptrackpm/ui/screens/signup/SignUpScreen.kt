@@ -107,10 +107,10 @@ fun SignUpScreen(navController: NavController) {
                 .onEach { result ->
                     when (result) {
                         is AuthResponse.Success -> {
-                            SessionManager.startAutoLogoutTimer(30 * 60 * 1000) // 30 min
+                            SessionManager.startAutoLogoutTimer(30 * 60 * 1000)
                             navController.navigate("overview")
                             {
-                                popUpTo(0) // removes everything from back stack
+                                popUpTo(0)
                                 launchSingleTop = true
                             }
                         }
@@ -125,7 +125,7 @@ fun SignUpScreen(navController: NavController) {
         }
 
         TextButton(onClick = {
-            navController.navigate("login") // Go back to login
+            navController.navigate("login")
         }) {
             Text("Already have an account? Sign in")
         }

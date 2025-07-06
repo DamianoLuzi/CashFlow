@@ -32,13 +32,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import co.yml.charts.axis.AxisData
-import co.yml.charts.common.model.Point
 import com.example.exptrackpm.ui.screens.transactions.TransactionViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -81,7 +78,6 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
     val incomeGrouped = groupByDay(incomes).toSortedMap()
     Log.d("grouped",expenseGrouped.toString())
     Log.d("grouped",incomeGrouped.toString())
-    //improv
     val allDatesSorted = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet().toList()
 
     val dateFormat = when (daysBack) {
@@ -92,9 +88,6 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
     val dateToIndex = allDatesSorted.withIndex().associate { it.value to it.index.toFloat() }
     Log.d("index",dateToIndex.toString())
 
-
-
-    val allDates = (expenseGrouped.keys + incomeGrouped.keys).toSortedSet()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val calendar = Calendar.getInstance()
 
@@ -102,8 +95,6 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
     if (allDatesSorted.isNotEmpty()) {
         val firstDate = sdf.parse(allDatesSorted.first())!!
         val lastDate = sdf.parse(allDatesSorted.last())!!
-
-        // Add one day before and after for padding
         calendar.time = firstDate
         calendar.add(Calendar.DAY_OF_YEAR, -1)
         paddedDates.add(sdf.format(calendar.time))
@@ -118,64 +109,12 @@ fun Pager(viewModel: TransactionViewModel = viewModel(), navController: NavContr
     }
 
     val finalDates = paddedDates.toSortedSet().toList()
-
-//    val expensePoints = allDates.mapIndexed { index, date ->
-//        Point(index.toFloat(), expenseGrouped[date] ?: 0f)
-//    }
-//
-//    val incomePoints = allDates.mapIndexed { index, date ->
-//        Point(index.toFloat(), incomeGrouped[date] ?: 0f)
-//    }
     val displayFormat = SimpleDateFormat(dateFormat, Locale.getDefault())
     val displayLabels = finalDates.map {
         displayFormat.format(sdf.parse(it)!!)
     }
-//    val displayLabels = allDatesSorted.map {
-//        displayFormat.format(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!)
-//    }
 
-    val expensePoints = finalDates.mapIndexed { index, date ->
-        Point(index.toFloat(), expenseGrouped[date] ?: 0f)
-    }
-
-    val incomePoints = finalDates.mapIndexed { index, date ->
-        Point(index.toFloat(), incomeGrouped[date] ?: 0f)
-    }
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-//    val stepSize = if (allDatesSorted.isNotEmpty()) {
-//        screenWidth / (allDatesSorted.size + 1)
-//    } else {
-//        1.dp // avoid divide-by-zero if somehow empty
-//    }
-    val stepSize = if (finalDates.isNotEmpty()) {
-        screenWidth / (finalDates.size + 1)
-    } else {
-        1.dp
-    }
-
-    val xAxisData = AxisData.Builder()
-        .axisStepSize(stepSize)
-        .backgroundColor(Color.Transparent)
-        //.steps(expensePoints.size - 1)
-        .steps(finalDates.size - 1)
-        .labelData { i -> displayLabels.getOrElse(i) { "" } }
-        .labelAndAxisLinePadding(10.dp)
-        .build()
-
-    val maxY = listOf(
-        expensePoints.maxOfOrNull { it.y } ?: 0f,
-        incomePoints.maxOfOrNull { it.y } ?: 0f
-    ).maxOrNull()!!.coerceAtLeast(100f)
-
-
-    val yAxisData = AxisData.Builder()
-        .steps(5)
-        .backgroundColor(Color.Transparent)
-        .labelAndAxisLinePadding(20.dp)
-        .labelData { i -> "%.2f".format(i * (maxY/5f)) }
-        .build()
-
-    val pagerState = rememberPagerState(pageCount = { 3 }) // e.g., 3 tabs: Overview, Expenses, Income
+    val pagerState = rememberPagerState(pageCount = { 3 })
 
     Scaffold(
         topBar = {

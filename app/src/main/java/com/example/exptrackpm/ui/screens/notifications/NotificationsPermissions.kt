@@ -25,7 +25,6 @@ import androidx.navigation.NavController
 @Composable
 fun NotificationPermissionScreen(navController: NavController) {
     val context = LocalContext.current
-    // val activity = LocalContext.current as? ComponentActivity
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -53,7 +52,6 @@ fun NotificationPermissionScreen(navController: NavController) {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     Log.d("Permission", "POST_NOTIFICATIONS permission already granted. Navigating to overview.")
-                    // If already granted, navigate directly to overview
                     navController.navigate("overview") {
                         popUpTo("notification_permission_screen") { inclusive = true }
                     }

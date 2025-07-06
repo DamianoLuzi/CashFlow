@@ -5,7 +5,6 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import com.example.exptrackpm.BuildConfig
-import com.google.firebase.auth.FirebaseAuth
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.storage.Storage
@@ -25,7 +24,6 @@ object SupabaseStorageService {
     }
 
     suspend fun uploadFileToSupabase(context: Context, uri: Uri, originalFileName: String?): String? {
-        val user = FirebaseAuth.getInstance().currentUser
         return withContext(Dispatchers.IO) {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)

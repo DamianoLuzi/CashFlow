@@ -305,7 +305,7 @@ fun TransactionDetailsScreen(
                                     trnViewModel.deleteTransaction(transactionId)
                                     showDeleteDialog = false
                                     Toast.makeText(context, "Transaction deleted", Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack() // Go back after deletion
+                                    navController.popBackStack()
                                 }
                             }
                         ) {

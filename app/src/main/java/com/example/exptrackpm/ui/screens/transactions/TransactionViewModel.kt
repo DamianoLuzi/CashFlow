@@ -47,8 +47,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     private fun loadUserNotificationPreferences(userId: String) {
-        UserRepository.getUser(//userId
-             ) { user ->
+        UserRepository.getUser { user ->
             user?.notificationPreferences?.let { preferences ->
                 _userNotificationPreferences.value = preferences
                 Log.d("TransactionViewModel", "Loaded preferences: $preferences")
@@ -62,9 +61,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     private fun loadBudgets(userId: String) {
-        UserRepository.getBudgets(
-            //userId
-            ) { loadedBudgets ->
+        UserRepository.getBudgets { loadedBudgets ->
             _budgets.value = loadedBudgets
             Log.d("TransactionViewModel", "Budgets loaded: ${loadedBudgets.size}")
         }
@@ -98,14 +95,12 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         )
         TransactionService.addTransaction(txn) { success ->
             if (success) {
-                // Reload all data after successful add to ensure UI is updated and checks run
                 currentUserId.let { id ->
                     loadTransactions()
-                    loadBudgets(id) // Reload budgets as well, in case check depends on fresh budget data
+                    loadBudgets(id)
                     loadUserNotificationPreferences(id)
                 }
                 viewModelScope.launch {
-                    // Check for over-budget alert only if transaction is an expense and preferences allow
                     Log.d("checkOverBudget"," ${txn} ${_userNotificationPreferences.value.overBudgetAlerts}")
                     if (txn.type == TransactionType.EXPENSE && _userNotificationPreferences.value.overBudgetAlerts) {
                         checkForOverBudget(txn.userId, txn.category, txn.amount)
@@ -113,7 +108,6 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 }
             } else {
                 Log.e("TransactionViewModel", "Failed to add transaction (Service reported failure).")
-                // Handle UI feedback for failure
             }
         }
     }
@@ -172,7 +166,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         if (budgetForCategory != null) {
             val currentMonth = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate().withDayOfMonth(1)
             val currentPeriodExpensesForCategory = _transactions.value
-                .filter { txn -> // Renamed 'it' to 'txn' for clarity in nested filters
+                .filter { txn ->
                     txn.type == TransactionType.EXPENSE &&
                             txn.category == category &&
                             txn.userId == userId &&
@@ -186,8 +180,8 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
                 Log.d("TransactionViewModel", "Over budget for '$category' by €$amountOver. Triggering notification.")
                 Toast.makeText(getApplication(), "Over budget in $category by €$amountOver", Toast.LENGTH_LONG).show()
 
-                NotificationHelper.showOverBudgetNotification( // Using full path to avoid import conflict if any
-                    getApplication(), // Access application context from AndroidViewModel
+                NotificationHelper.showOverBudgetNotification(
+                    getApplication(),
                     category,
                     amountOver
                 )
@@ -204,7 +198,7 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         TransactionService.deleteTransaction(id) { success ->
             if (success) {
                 auth.currentUser?.uid?.let { userId ->
-                    loadTransactions() // Reload transactions after deletion
+                    loadTransactions()
                     loadBudgets(userId)
                     loadUserNotificationPreferences(userId)
                 }
